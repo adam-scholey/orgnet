@@ -200,6 +200,80 @@ public class AuthService
         await _db.SaveChangesAsync();
     }
 
+    /// <summary>
+    /// Look up an invitation by its secure token. Returns info for the invited user
+    /// to see which org they're joining. Does not require authentication.
+    /// </summary>
+    public async Task<InvitationInfoDto?> GetInvitationByTokenAsync(string token)
+    {
+        var invite = await _db.Invitations
+            .IgnoreQueryFilters()
+            .Include(i => i.Tenant)
+            .Include(i => i.InvitedBy)
+            .FirstOrDefaultAsync(i => i.Token == token);
+
+        if (invite == null) return null;
+
+        return new InvitationInfoDto(
+            invite.Id, invite.Email, invite.Role.ToString(),
+            invite.Tenant.Name, invite.InvitedBy.DisplayName,
+            invite.ExpiresAt, invite.IsAccepted, invite.IsExpired);
+    }
+
+    /// <summary>
+    /// Accept an invitation: validates the token, creates the user in the tenant,
+    /// marks the invitation as accepted, and returns auth tokens so the user is
+    /// immediately logged in.
+    /// </summary>
+    public async Task<AuthResponse> AcceptInvitationAsync(AcceptInviteRequest request)
+    {
+        var invite = await _db.Invitations
+            .IgnoreQueryFilters()
+            .Include(i => i.Tenant)
+            .FirstOrDefaultAsync(i => i.Token == request.Token);
+
+        if (invite == null)
+            return new AuthResponse(false, "", "", "", "", Guid.Empty, "Invalid invitation token");
+
+        if (invite.IsAccepted)
+            return new AuthResponse(false, "", "", "", "", Guid.Empty, "This invitation has already been accepted");
+
+        if (invite.IsExpired)
+            return new AuthResponse(false, "", "", "", "", Guid.Empty, "This invitation has expired. Ask your admin to send a new one.");
+
+        // Check email not already registered in this tenant
+        var existingUser = await _db.Users
+            .IgnoreQueryFilters()
+            .FirstOrDefaultAsync(u => u.Email == invite.Email && u.TenantId == invite.TenantId);
+
+        if (existingUser != null)
+            return new AuthResponse(false, "", "", "", "", Guid.Empty, "An account with this email already exists in this organisation");
+
+        // Create the user
+        var user = new User
+        {
+            TenantId = invite.TenantId,
+            DisplayName = request.DisplayName,
+            Email = invite.Email,
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password, workFactor: 12),
+            Role = invite.Role,
+        };
+
+        _db.Users.Add(user);
+
+        // Mark invitation as accepted
+        invite.AcceptedAt = DateTime.UtcNow;
+
+        await _db.SaveChangesAsync();
+
+        // Generate tokens so the user is immediately logged in
+        var accessToken = _tokenService.GenerateAccessToken(user.Id, invite.TenantId, user.DisplayName, user.Role.ToString());
+        var refreshToken = await CreateRefreshTokenAsync(user.Id, invite.TenantId);
+        await _db.SaveChangesAsync();
+
+        return new AuthResponse(true, accessToken, refreshToken, user.DisplayName, user.Role.ToString(), invite.TenantId);
+    }
+
     private static string Slugify(string name)
     {
         return name.ToLowerInvariant()

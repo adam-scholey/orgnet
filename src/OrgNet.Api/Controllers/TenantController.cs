@@ -64,17 +64,68 @@ public class TenantController : ControllerBase
 
     [HttpPost("invite")]
     [Authorize(Roles = "Owner,Admin")]
-    public async Task<ActionResult> InviteUser([FromBody] InviteUserRequest request)
+    public async Task<ActionResult<InviteResponse>> InviteUser([FromBody] InviteUserRequest request)
     {
-        if (string.IsNullOrWhiteSpace(request.Email))
-            return BadRequest(new { error = "Email required" });
+        if (string.IsNullOrWhiteSpace(request.Email) || !request.Email.Contains('@'))
+            return BadRequest(new InviteResponse(false, "", "", DateTime.MinValue, "Valid email required"));
 
+        // Check if user already exists in this tenant
         var exists = await _db.Users.AnyAsync(u => u.Email == request.Email);
         if (exists)
-            return Conflict(new { error = "User already exists in this organisation" });
+            return Conflict(new InviteResponse(false, "", "", DateTime.MinValue, "User already exists in this organisation"));
 
-        // In production, this would send an invitation email.
-        // For MVP, we create a pending user record.
-        return Ok(new { message = $"Invitation sent to {request.Email}" });
+        // Check for existing pending invite
+        var pending = await _db.Invitations.FirstOrDefaultAsync(i => i.Email == request.Email && i.AcceptedAt == null);
+        if (pending != null && !pending.IsExpired)
+            return Conflict(new InviteResponse(false, "", "", DateTime.MinValue, "A pending invitation already exists for this email"));
+
+        // Parse role
+        if (!Enum.TryParse<OrgNet.Shared.Enums.UserRole>(request.Role, true, out var role))
+            role = OrgNet.Shared.Enums.UserRole.Member;
+
+        var userIdClaim = User.FindFirst(OrgNet.Shared.Constants.OrgNetConstants.ClaimTypes.UserId)?.Value;
+        var invitedByUserId = Guid.TryParse(userIdClaim, out var uid) ? uid : Guid.Empty;
+
+        // Generate secure invite token
+        var token = Convert.ToBase64String(System.Security.Cryptography.RandomNumberGenerator.GetBytes(48))
+            .Replace("+", "-").Replace("/", "_").TrimEnd('=');
+
+        var invitation = new OrgNet.Domain.Entities.Invitation
+        {
+            TenantId = _tenantContext.TenantId,
+            Email = request.Email,
+            Role = role,
+            Token = token,
+            InvitedByUserId = invitedByUserId,
+            ExpiresAt = DateTime.UtcNow.AddDays(7),
+        };
+
+        _db.Invitations.Add(invitation);
+        await _db.SaveChangesAsync();
+
+        // Build invite link — in production this would be emailed
+        var baseUrl = $"{Request.Scheme}://{Request.Host}";
+        var inviteLink = $"{baseUrl}/api/auth/accept-invite?token={token}";
+
+        return Ok(new InviteResponse(true, inviteLink, token, invitation.ExpiresAt));
+    }
+
+    [HttpGet("invitations")]
+    [Authorize(Roles = "Owner,Admin")]
+    public async Task<ActionResult<List<InvitationInfoDto>>> GetInvitations()
+    {
+        var tenant = await _db.Tenants.FindAsync(_tenantContext.TenantId);
+        var invitations = await _db.Invitations
+            .Include(i => i.InvitedBy)
+            .OrderByDescending(i => i.CreatedAt)
+            .Select(i => new InvitationInfoDto(
+                i.Id, i.Email, i.Role.ToString(),
+                tenant!.Name,
+                i.InvitedBy.DisplayName,
+                i.ExpiresAt, i.AcceptedAt.HasValue,
+                DateTime.UtcNow > i.ExpiresAt))
+            .ToListAsync();
+
+        return Ok(invitations);
     }
 }

@@ -88,12 +88,39 @@ public sealed partial class UserManagementPage : Page
 
         try
         {
-            // Use existing tenant invite endpoint
-            AttachHeaders();
             var result = await _api.PostInviteAsync(new InviteUserRequest(email, role));
-            StatusBar.Message = $"Invitation sent to {email}";
-            StatusBar.IsOpen = true;
-            await LoadPageAsync();
+            if (result != null && result.Success)
+            {
+                // Show the invite link so the admin can share it
+                var linkBox = new TextBox
+                {
+                    Text = result.InviteLink,
+                    IsReadOnly = true,
+                    TextWrapping = TextWrapping.Wrap,
+                };
+                var infoDialog = new ContentDialog
+                {
+                    Title = "Invitation Created",
+                    Content = new StackPanel { Spacing = 8, Children =
+                    {
+                        new TextBlock { Text = $"Share this link with {email}. They can use it to join your organisation.", TextWrapping = TextWrapping.Wrap },
+                        linkBox,
+                        new TextBlock { Text = $"Expires: {result.ExpiresAt:g}", Opacity = 0.5, FontSize = 12 },
+                    }},
+                    CloseButtonText = "Done",
+                    XamlRoot = this.XamlRoot
+                };
+                await infoDialog.ShowAsync();
+
+                StatusBar.Message = $"Invitation sent to {email}";
+                StatusBar.IsOpen = true;
+                await LoadPageAsync();
+            }
+            else
+            {
+                ErrorBar.Message = _api.LastError ?? "Failed to send invitation";
+                ErrorBar.IsOpen = true;
+            }
         }
         catch (Exception ex)
         {
@@ -103,8 +130,6 @@ public sealed partial class UserManagementPage : Page
 
         LoadingBar.Visibility = Visibility.Collapsed;
     }
-
-    private void AttachHeaders() { /* headers attached by OrgNetApiClient automatically */ }
 
     private async void OnRefreshClicked(object sender, RoutedEventArgs e)
     {

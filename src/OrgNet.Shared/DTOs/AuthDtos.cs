@@ -11,6 +11,9 @@ public record TokenPair(string AccessToken, string RefreshToken);
 public record UserProfileDto(Guid Id, string DisplayName, string Email, string Role, string? AvatarUrl, DateTime CreatedAt);
 public record UpdateProfileRequest(string? DisplayName, string? AvatarUrl);
 public record InviteUserRequest(string Email, string Role);
+public record InviteResponse(bool Success, string InviteLink, string Token, DateTime ExpiresAt, string? Error = null);
+public record AcceptInviteRequest(string Token, string DisplayName, string Password);
+public record InvitationInfoDto(Guid Id, string Email, string Role, string OrganisationName, string InvitedBy, DateTime ExpiresAt, bool IsAccepted, bool IsExpired);
 
 // Tenant
 public record TenantInfoDto(Guid Id, string Name, string Slug, string Plan, int MemberCount, DateTime CreatedAt);

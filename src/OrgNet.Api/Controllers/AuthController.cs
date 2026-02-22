@@ -129,4 +129,51 @@ public class AuthController : ControllerBase
             Role = User.FindFirstValue(OrgNetConstants.ClaimTypes.Role)
         });
     }
+
+    /// <summary>
+    /// Get invitation details by token. Public endpoint — the invited user
+    /// uses this to see which org they're joining before accepting.
+    /// </summary>
+    [HttpGet("invite-info")]
+    public async Task<ActionResult<InvitationInfoDto>> GetInviteInfo([FromQuery] string token)
+    {
+        if (string.IsNullOrWhiteSpace(token))
+            return BadRequest(new { error = "Token required" });
+
+        var invite = await _authService.GetInvitationByTokenAsync(token);
+        if (invite == null)
+            return NotFound(new { error = "Invitation not found or expired" });
+
+        return Ok(invite);
+    }
+
+    /// <summary>
+    /// Accept an invitation — creates the user account in the tenant.
+    /// Public endpoint: the invited user provides the token, their display name, and a password.
+    /// Returns an AuthResponse so they are immediately logged in.
+    /// </summary>
+    [HttpPost("accept-invite")]
+    public async Task<ActionResult<AuthResponse>> AcceptInvite([FromBody] AcceptInviteRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Token))
+            return BadRequest(new AuthResponse(false, "", "", "", "", Guid.Empty, "Invite token required"));
+
+        if (string.IsNullOrWhiteSpace(request.DisplayName) || request.DisplayName.Length > 150)
+            return BadRequest(new AuthResponse(false, "", "", "", "", Guid.Empty, "Display name required (max 150 chars)"));
+
+        if (string.IsNullOrWhiteSpace(request.Password) || request.Password.Length < 8 || request.Password.Length > 128)
+            return BadRequest(new AuthResponse(false, "", "", "", "", Guid.Empty, "Password must be 8-128 characters"));
+
+        var result = await _authService.AcceptInvitationAsync(request);
+
+        if (result.Success)
+        {
+            await _auditService.LogAsync(null, request.DisplayName, AuditAction.Login, "User",
+                details: "Accepted invitation and joined organisation",
+                ipAddress: HttpContext.Connection.RemoteIpAddress?.ToString());
+        }
+
+        if (!result.Success) return BadRequest(result);
+        return Ok(result);
+    }
 }

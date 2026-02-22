@@ -34,6 +34,7 @@ public class OrgNetDbContext : DbContext
     public DbSet<CollabNote> CollabNotes => Set<CollabNote>();
     public DbSet<TaskItem> TaskItems => Set<TaskItem>();
     public DbSet<Announcement> Announcements => Set<Announcement>();
+    public DbSet<Invitation> Invitations => Set<Invitation>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -168,6 +169,19 @@ public class OrgNetDbContext : DbContext
             e.HasOne(a => a.Author).WithMany().HasForeignKey(a => a.AuthorId).OnDelete(DeleteBehavior.Restrict);
             e.HasOne(a => a.Tenant).WithMany().HasForeignKey(a => a.TenantId).OnDelete(DeleteBehavior.Cascade);
             e.HasQueryFilter(a => a.TenantId == _tenantContext.TenantId);
+        });
+
+        // ── Invitation (tenant-scoped, pending user invites) ──
+        modelBuilder.Entity<Invitation>(e =>
+        {
+            e.HasKey(i => i.Id);
+            e.HasIndex(i => i.Token).IsUnique();
+            e.HasIndex(i => new { i.TenantId, i.Email });
+            e.Property(i => i.Email).HasMaxLength(256).IsRequired();
+            e.Property(i => i.Token).HasMaxLength(128).IsRequired();
+            e.HasOne(i => i.Tenant).WithMany().HasForeignKey(i => i.TenantId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne(i => i.InvitedBy).WithMany().HasForeignKey(i => i.InvitedByUserId).OnDelete(DeleteBehavior.Restrict);
+            e.HasQueryFilter(i => i.TenantId == _tenantContext.TenantId);
         });
     }
 

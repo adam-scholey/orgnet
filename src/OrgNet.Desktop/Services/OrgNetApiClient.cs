@@ -88,11 +88,17 @@ public class OrgNetApiClient
     }
 
     // ── User Management ──
-    public async Task<bool> PostInviteAsync(InviteUserRequest request)
-    {
-        var result = await PostJson<object>("api/tenant/invite", request);
-        return result != null;
-    }
+    public async Task<InviteResponse?> PostInviteAsync(InviteUserRequest request)
+        => await PostJson<InviteResponse>("api/tenant/invite", request);
+
+    public async Task<List<InvitationInfoDto>?> GetInvitationsAsync()
+        => await GetJson<List<InvitationInfoDto>>("api/tenant/invitations");
+
+    public async Task<InvitationInfoDto?> GetInviteInfoAsync(string token)
+        => await GetJson<InvitationInfoDto>($"api/auth/invite-info?token={token}");
+
+    public async Task<AuthResponse?> AcceptInviteAsync(AcceptInviteRequest request)
+        => await PostJson<AuthResponse>("api/auth/accept-invite", request);
 
     // ── Devices ──
     public async Task<List<DeviceDto>?> GetDevicesAsync() => await GetJson<List<DeviceDto>>("api/devices");
