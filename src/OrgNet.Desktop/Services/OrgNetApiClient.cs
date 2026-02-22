@@ -95,49 +95,6 @@ public class OrgNetApiClient
     // ── Audit ──
     public async Task<AuditPageResult?> GetAuditLogsAsync(int page = 1) => await GetJson<AuditPageResult>($"api/audit?page={page}");
 
-    // ── FileFlow (CloudFileSystem integration) ──
-    public async Task<FileFlowStatusDto?> GetFileFlowStatusAsync() => await GetJson<FileFlowStatusDto>("api/fileflow/status");
-
-    public async Task<bool> ConnectFileFlowAsync(string email, string password)
-    {
-        var result = await PostJson<object>("api/fileflow/connect", new FileFlowConnectRequest(email, password));
-        return result != null;
-    }
-
-    public async Task<FileFlowFileListDto?> GetFileFlowFilesAsync() => await GetJson<FileFlowFileListDto>("api/fileflow/files");
-
-    public async Task<FileFlowFileDto?> UploadFileFlowFileAsync(string fileName, string base64Content, string encryptionPin)
-        => await PostJson<FileFlowFileDto>("api/fileflow/upload", new FileFlowUploadRequest(fileName, base64Content, encryptionPin));
-
-    public async Task<byte[]?> DownloadFileFlowFileAsync(int fileId, string encryptionPin)
-    {
-        LastError = null;
-        try
-        {
-            AttachHeaders();
-            var response = await _http.PostAsJsonAsync("api/fileflow/download", new FileFlowDownloadRequest(fileId, encryptionPin));
-            if (!response.IsSuccessStatusCode)
-            {
-                LastError = $"Download failed: {(int)response.StatusCode}";
-                return null;
-            }
-            return await response.Content.ReadAsByteArrayAsync();
-        }
-        catch (Exception ex) { LastError = ex.Message; return null; }
-    }
-
-    public async Task<bool> DeleteFileFlowFileAsync(int fileId)
-    {
-        LastError = null;
-        try
-        {
-            AttachHeaders();
-            var response = await _http.DeleteAsync($"api/fileflow/files/{fileId}");
-            return response.IsSuccessStatusCode;
-        }
-        catch (Exception ex) { LastError = ex.Message; return false; }
-    }
-
     // ── Helpers ──
     public string? LastError { get; private set; }
 

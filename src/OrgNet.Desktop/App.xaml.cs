@@ -18,9 +18,7 @@ namespace OrgNet.Desktop;
 public partial class App : Application
 {
     public static IHost Host { get; private set; } = null!;
-    public static IServiceProvider Services => Host.Services;
     public static T GetService<T>() where T : class => Host.Services.GetRequiredService<T>();
-    public static Window MainWindow { get; private set; } = null!;
 
     private Window? _window;
 
@@ -49,7 +47,6 @@ public partial class App : Application
                 services.AddTransient<ModulesViewModel>();
                 services.AddTransient<DevicesViewModel>();
                 services.AddTransient<SettingsViewModel>();
-                services.AddTransient<FileFlowViewModel>();
             })
             .Build();
     }
@@ -64,7 +61,6 @@ public partial class App : Application
         await cache.InitialiseAsync();
 
         _window = new Window();
-        MainWindow = _window;
 
         if (_window.Content is not Frame rootFrame)
         {

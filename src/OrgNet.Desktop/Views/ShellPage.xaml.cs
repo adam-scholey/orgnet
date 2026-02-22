@@ -60,9 +60,6 @@ public sealed partial class ShellPage : Page
                 case "Devices":
                     ContentFrame.Navigate(typeof(DevicesPage));
                     break;
-                case "FileFlow":
-                    ContentFrame.Navigate(typeof(FileFlowPage));
-                    break;
                 case "AppLauncher":
                     ContentFrame.Navigate(typeof(AppLauncherPage));
                     break;
