@@ -1,15 +1,9 @@
 <Solution>
-  <Folder Name="/plugins/">
-    <Project Path="plugins/OrgNet.Plugin.SampleChat/OrgNet.Plugin.SampleChat.csproj" />
-  </Folder>
   <Folder Name="/src/">
     <Project Path="src/OrgNet.Api/OrgNet.Api.csproj" />
     <Project Path="src/OrgNet.Desktop/OrgNet.Desktop.csproj" />
     <Project Path="src/OrgNet.Domain/OrgNet.Domain.csproj" />
     <Project Path="src/OrgNet.Infrastructure/OrgNet.Infrastructure.csproj" />
     <Project Path="src/OrgNet.Shared/OrgNet.Shared.csproj" />
-  </Folder>
-  <Folder Name="/tests/">
-    <Project Path="tests/OrgNet.Tests/OrgNet.Tests.csproj" />
   </Folder>
 </Solution>
