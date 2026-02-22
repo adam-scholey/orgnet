@@ -101,13 +101,25 @@ try
     var app = builder.Build();
 
     // ── Database Initialisation ──
+    // In development, recreate the database to pick up schema changes.
+    // In production, use EF Core migrations instead.
     using (var scope = app.Services.CreateScope())
     {
         var db = scope.ServiceProvider.GetRequiredService<OrgNetDbContext>();
         try
         {
-            db.Database.EnsureCreated();
-            Log.Information("Database ready");
+            if (app.Environment.IsDevelopment())
+            {
+                // Drop and recreate to ensure schema matches the model
+                db.Database.EnsureDeleted();
+                db.Database.EnsureCreated();
+                Log.Information("Database recreated (development mode)");
+            }
+            else
+            {
+                db.Database.EnsureCreated();
+                Log.Information("Database ready");
+            }
         }
         catch (Exception ex)
         {
