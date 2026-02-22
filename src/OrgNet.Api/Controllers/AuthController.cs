@@ -6,6 +6,7 @@ using OrgNet.Infrastructure.Services;
 using OrgNet.Shared.Constants;
 using OrgNet.Shared.DTOs;
 using OrgNet.Shared.Enums;
+using OrgNet.Api.Services;
 using OrgNet.Shared.Interfaces;
 
 namespace OrgNet.Api.Controllers;
@@ -17,12 +18,14 @@ public class AuthController : ControllerBase
     private readonly AuthService _authService;
     private readonly AuditService _auditService;
     private readonly ITenantContext _tenantContext;
+    private readonly FileFlowProxyService _fileFlow;
 
-    public AuthController(AuthService authService, AuditService auditService, ITenantContext tenantContext)
+    public AuthController(AuthService authService, AuditService auditService, ITenantContext tenantContext, FileFlowProxyService fileFlow)
     {
         _authService = authService;
         _auditService = auditService;
         _tenantContext = tenantContext;
+        _fileFlow = fileFlow;
     }
 
     /// <summary>Register a new organisation. First user becomes Owner.</summary>
@@ -43,6 +46,16 @@ public class AuthController : ControllerBase
 
         var result = await _authService.RegisterOrganisationAsync(request);
         if (!result.Success) return BadRequest(result);
+
+        // Tenant sync: create matching org in CloudFileSystem (best-effort)
+        if (_fileFlow.IsEnabled)
+        {
+            var ffResult = await _fileFlow.CreateOrganisationAsync(
+                request.OrganisationName, request.Email, request.Password);
+            if (ffResult != null)
+                _fileFlow.StoreSession(result.TenantId, ffResult.Token);
+        }
+
         return Ok(result);
     }
 
@@ -81,6 +94,10 @@ public class AuthController : ControllerBase
         {
             await _auditService.LogAsync(null, request.Email, AuditAction.Login, "User",
                 details: "Login successful (by email)", ipAddress: HttpContext.Connection.RemoteIpAddress?.ToString());
+
+            // Sync FileFlow session (best-effort, non-blocking)
+            if (_fileFlow.IsEnabled && !_fileFlow.HasSession(result.TenantId))
+                _ = _fileFlow.LoginAsync(result.TenantId, request.Email, request.Password);
         }
 
         if (!result.Success) return Unauthorized(result);

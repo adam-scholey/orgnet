@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using OrgNet.Api.Hubs;
 using OrgNet.Api.Middleware;
+using OrgNet.Api.Services;
 using OrgNet.Infrastructure;
 using OrgNet.Infrastructure.Data;
 using OrgNet.Infrastructure.Plugins;
@@ -75,6 +76,13 @@ try
                 .AllowCredentials();
         });
     });
+
+    // ── FileFlow Integration (CloudFileSystem proxy) ──
+    builder.Services.AddSingleton<FileFlowProxyService>(sp =>
+        new FileFlowProxyService(
+            new HttpClient(),
+            sp.GetRequiredService<IConfiguration>(),
+            sp.GetRequiredService<ILogger<FileFlowProxyService>>()));
 
     // ── Controllers + SignalR ──
     builder.Services.AddControllers();

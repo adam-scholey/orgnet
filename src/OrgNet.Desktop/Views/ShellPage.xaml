@@ -27,6 +27,11 @@
                         <SymbolIcon Symbol="CellPhone"/>
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
+                <NavigationViewItem Content="Files" Tag="FileFlow">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE8B7;"/>
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
                 <NavigationViewItem Content="App Launcher" Tag="AppLauncher">
                     <NavigationViewItem.Icon>
                         <SymbolIcon Symbol="ViewAll"/>
