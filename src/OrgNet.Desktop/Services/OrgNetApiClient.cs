@@ -201,6 +201,15 @@ public class OrgNetApiClient
         {
             AttachHeaders();
             var response = await _http.PostAsJsonAsync(url, data);
+
+            if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                var refreshed = await RefreshTokenAsync();
+                if (refreshed == null) { LastError = "Session expired — please log in again"; return default; }
+                AttachHeaders();
+                response = await _http.PostAsJsonAsync(url, data);
+            }
+
             if (!response.IsSuccessStatusCode)
             {
                 var body = await response.Content.ReadAsStringAsync();
@@ -233,6 +242,15 @@ public class OrgNetApiClient
         {
             AttachHeaders();
             var response = await _http.PutAsJsonAsync(url, data);
+
+            if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                var refreshed = await RefreshTokenAsync();
+                if (refreshed == null) { LastError = "Session expired — please log in again"; return default; }
+                AttachHeaders();
+                response = await _http.PutAsJsonAsync(url, data);
+            }
+
             if (!response.IsSuccessStatusCode)
             {
                 var body = await response.Content.ReadAsStringAsync();
@@ -253,6 +271,15 @@ public class OrgNetApiClient
         {
             AttachHeaders();
             var response = await _http.DeleteAsync(url);
+
+            if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                var refreshed = await RefreshTokenAsync();
+                if (refreshed == null) { LastError = "Session expired — please log in again"; return false; }
+                AttachHeaders();
+                response = await _http.DeleteAsync(url);
+            }
+
             if (!response.IsSuccessStatusCode)
             {
                 LastError = $"Server returned {(int)response.StatusCode}";
