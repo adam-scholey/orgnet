@@ -31,6 +31,22 @@ public enum ModuleStatus
     Licensed = 2
 }
 
+public enum TaskItemStatus
+{
+    Todo = 0,
+    InProgress = 1,
+    Review = 2,
+    Done = 3
+}
+
+public enum TaskItemPriority
+{
+    Low = 0,
+    Medium = 1,
+    High = 2,
+    Critical = 3
+}
+
 public enum AuditAction
 {
     Login,

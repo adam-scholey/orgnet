@@ -27,6 +27,37 @@
                         <SymbolIcon Symbol="CellPhone"/>
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
+
+                <NavigationViewItemSeparator/>
+
+                <NavigationViewItem Content="Chat" Tag="Chat">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE8BD;"/>
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem Content="Files" Tag="FileVault">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE8B7;"/>
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem Content="Notes" Tag="Notes">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE70B;"/>
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem Content="Tasks" Tag="TaskBoard">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE9D5;"/>
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem Content="Announcements" Tag="Announcements">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE789;"/>
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
+                <NavigationViewItemSeparator/>
+
                 <NavigationViewItem Content="App Launcher" Tag="AppLauncher">
                     <NavigationViewItem.Icon>
                         <SymbolIcon Symbol="ViewAll"/>

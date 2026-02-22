@@ -95,6 +95,49 @@ public class OrgNetApiClient
     // ── Audit ──
     public async Task<AuditPageResult?> GetAuditLogsAsync(int page = 1) => await GetJson<AuditPageResult>($"api/audit?page={page}");
 
+    // ── File Vault ──
+    public async Task<List<OrgFileDto>?> GetFilesAsync() => await GetJson<List<OrgFileDto>>("api/files");
+    public async Task<OrgFileDto?> UploadFileAsync(UploadFileRequest request) => await PostJson<OrgFileDto>("api/files/upload", request);
+    public async Task<byte[]?> DownloadFileAsync(Guid fileId, string pin)
+    {
+        LastError = null;
+        try
+        {
+            AttachHeaders();
+            var response = await _http.PostAsJsonAsync("api/files/download", new DownloadFileRequest(fileId, pin));
+            if (!response.IsSuccessStatusCode) { LastError = $"Download failed: {(int)response.StatusCode}"; return null; }
+            return await response.Content.ReadAsByteArrayAsync();
+        }
+        catch (Exception ex) { LastError = ex.Message; return null; }
+    }
+    public async Task<bool> DeleteFileAsync(Guid fileId) => await DeleteRequest($"api/files/{fileId}");
+
+    // ── Chat / Messaging ──
+    public async Task<List<ChatChannelDto>?> GetChatChannelsAsync() => await GetJson<List<ChatChannelDto>>("api/chat/channels");
+    public async Task<List<ChatMessageDto>?> GetChatMessagesAsync(string channel, int take = 50)
+        => await GetJson<List<ChatMessageDto>>($"api/chat/messages/{channel}?take={take}");
+    public async Task<ChatMessageDto?> SendChatMessageAsync(SendMessageRequest request) => await PostJson<ChatMessageDto>("api/chat/send", request);
+    public async Task<bool> DeleteChatMessageAsync(Guid messageId) => await DeleteRequest($"api/chat/{messageId}");
+
+    // ── Collaboration Notes ──
+    public async Task<List<CollabNoteDto>?> GetNotesAsync() => await GetJson<List<CollabNoteDto>>("api/notes");
+    public async Task<CollabNoteDto?> CreateNoteAsync(CreateNoteRequest request) => await PostJson<CollabNoteDto>("api/notes", request);
+    public async Task<CollabNoteDto?> UpdateNoteAsync(UpdateNoteRequest request) => await PutJson<CollabNoteDto>("api/notes", request);
+    public async Task<bool> DeleteNoteAsync(Guid noteId) => await DeleteRequest($"api/notes/{noteId}");
+
+    // ── Task Board ──
+    public async Task<List<TaskItemDto>?> GetTasksAsync(string? status = null)
+        => await GetJson<List<TaskItemDto>>(status != null ? $"api/tasks?status={status}" : "api/tasks");
+    public async Task<TaskBoardSummary?> GetTaskSummaryAsync() => await GetJson<TaskBoardSummary>("api/tasks/summary");
+    public async Task<TaskItemDto?> CreateTaskAsync(CreateTaskRequest request) => await PostJson<TaskItemDto>("api/tasks", request);
+    public async Task<TaskItemDto?> UpdateTaskAsync(UpdateTaskRequest request) => await PutJson<TaskItemDto>("api/tasks", request);
+    public async Task<bool> DeleteTaskAsync(Guid taskId) => await DeleteRequest($"api/tasks/{taskId}");
+
+    // ── Announcements ──
+    public async Task<List<AnnouncementDto>?> GetAnnouncementsAsync() => await GetJson<List<AnnouncementDto>>("api/announcements");
+    public async Task<AnnouncementDto?> CreateAnnouncementAsync(CreateAnnouncementRequest request) => await PostJson<AnnouncementDto>("api/announcements", request);
+    public async Task<bool> DeleteAnnouncementAsync(Guid id) => await DeleteRequest($"api/announcements/{id}");
+
     // ── Helpers ──
     public string? LastError { get; private set; }
 
@@ -168,5 +211,44 @@ public class OrgNetApiClient
             LastError = ex.Message;
             return default;
         }
+    }
+
+    private async Task<T?> PutJson<T>(string url, object data)
+    {
+        LastError = null;
+        try
+        {
+            AttachHeaders();
+            var response = await _http.PutAsJsonAsync(url, data);
+            if (!response.IsSuccessStatusCode)
+            {
+                var body = await response.Content.ReadAsStringAsync();
+                LastError = $"Server returned {(int)response.StatusCode}: {body}";
+                return default;
+            }
+            return await response.Content.ReadFromJsonAsync<T>();
+        }
+        catch (HttpRequestException ex) { LastError = $"Cannot reach API at {BaseUrl}: {ex.Message}"; return default; }
+        catch (TaskCanceledException) { LastError = "Request timed out — is the API running?"; return default; }
+        catch (Exception ex) { LastError = ex.Message; return default; }
+    }
+
+    private async Task<bool> DeleteRequest(string url)
+    {
+        LastError = null;
+        try
+        {
+            AttachHeaders();
+            var response = await _http.DeleteAsync(url);
+            if (!response.IsSuccessStatusCode)
+            {
+                LastError = $"Server returned {(int)response.StatusCode}";
+                return false;
+            }
+            return true;
+        }
+        catch (HttpRequestException ex) { LastError = $"Cannot reach API at {BaseUrl}: {ex.Message}"; return false; }
+        catch (TaskCanceledException) { LastError = "Request timed out — is the API running?"; return false; }
+        catch (Exception ex) { LastError = ex.Message; return false; }
     }
 }

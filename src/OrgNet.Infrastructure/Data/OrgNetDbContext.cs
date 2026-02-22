@@ -29,6 +29,11 @@ public class OrgNetDbContext : DbContext
     public DbSet<TenantModule> TenantModules => Set<TenantModule>();
     public DbSet<ServiceRegistration> ServiceRegistrations => Set<ServiceRegistration>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+    public DbSet<OrgFile> OrgFiles => Set<OrgFile>();
+    public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
+    public DbSet<CollabNote> CollabNotes => Set<CollabNote>();
+    public DbSet<TaskItem> TaskItems => Set<TaskItem>();
+    public DbSet<Announcement> Announcements => Set<Announcement>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -106,6 +111,62 @@ public class OrgNetDbContext : DbContext
             e.HasIndex(a => new { a.TenantId, a.Timestamp });
             e.Property(a => a.Username).HasMaxLength(150);
             e.Property(a => a.EntityType).HasMaxLength(100);
+            e.HasQueryFilter(a => a.TenantId == _tenantContext.TenantId);
+        });
+
+        // ── OrgFile (tenant-scoped, encrypted file vault) ──
+        modelBuilder.Entity<OrgFile>(e =>
+        {
+            e.HasKey(f => f.Id);
+            e.Property(f => f.FileName).HasMaxLength(255).IsRequired();
+            e.Property(f => f.ContentType).HasMaxLength(100);
+            e.HasOne(f => f.UploadedBy).WithMany().HasForeignKey(f => f.UploadedByUserId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(f => f.Tenant).WithMany().HasForeignKey(f => f.TenantId).OnDelete(DeleteBehavior.Cascade);
+            e.HasQueryFilter(f => f.TenantId == _tenantContext.TenantId);
+        });
+
+        // ── ChatMessage (tenant-scoped, real-time messaging) ──
+        modelBuilder.Entity<ChatMessage>(e =>
+        {
+            e.HasKey(m => m.Id);
+            e.HasIndex(m => new { m.TenantId, m.Channel, m.SentAt });
+            e.Property(m => m.Channel).HasMaxLength(100).IsRequired();
+            e.Property(m => m.Content).HasMaxLength(4000).IsRequired();
+            e.HasOne(m => m.Sender).WithMany().HasForeignKey(m => m.SenderId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(m => m.Tenant).WithMany().HasForeignKey(m => m.TenantId).OnDelete(DeleteBehavior.Cascade);
+            e.HasQueryFilter(m => m.TenantId == _tenantContext.TenantId);
+        });
+
+        // ── CollabNote (tenant-scoped, shared documents) ──
+        modelBuilder.Entity<CollabNote>(e =>
+        {
+            e.HasKey(n => n.Id);
+            e.Property(n => n.Title).HasMaxLength(300).IsRequired();
+            e.HasOne(n => n.CreatedBy).WithMany().HasForeignKey(n => n.CreatedByUserId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(n => n.Tenant).WithMany().HasForeignKey(n => n.TenantId).OnDelete(DeleteBehavior.Cascade);
+            e.HasQueryFilter(n => n.TenantId == _tenantContext.TenantId);
+        });
+
+        // ── TaskItem (tenant-scoped, kanban board) ──
+        modelBuilder.Entity<TaskItem>(e =>
+        {
+            e.HasKey(t => t.Id);
+            e.Property(t => t.Title).HasMaxLength(300).IsRequired();
+            e.Property(t => t.Description).HasMaxLength(2000);
+            e.HasOne(t => t.CreatedBy).WithMany().HasForeignKey(t => t.CreatedByUserId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(t => t.AssignedTo).WithMany().HasForeignKey(t => t.AssignedToUserId).OnDelete(DeleteBehavior.SetNull);
+            e.HasOne(t => t.Tenant).WithMany().HasForeignKey(t => t.TenantId).OnDelete(DeleteBehavior.Cascade);
+            e.HasQueryFilter(t => t.TenantId == _tenantContext.TenantId);
+        });
+
+        // ── Announcement (tenant-scoped, org-wide broadcasts) ──
+        modelBuilder.Entity<Announcement>(e =>
+        {
+            e.HasKey(a => a.Id);
+            e.Property(a => a.Title).HasMaxLength(300).IsRequired();
+            e.Property(a => a.Body).HasMaxLength(5000).IsRequired();
+            e.HasOne(a => a.Author).WithMany().HasForeignKey(a => a.AuthorId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(a => a.Tenant).WithMany().HasForeignKey(a => a.TenantId).OnDelete(DeleteBehavior.Cascade);
             e.HasQueryFilter(a => a.TenantId == _tenantContext.TenantId);
         });
     }
