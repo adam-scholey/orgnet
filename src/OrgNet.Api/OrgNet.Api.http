@@ -1,0 +1,6 @@
+@OrgNet.Api_HostAddress = http://localhost:5283
+
+GET {{OrgNet.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

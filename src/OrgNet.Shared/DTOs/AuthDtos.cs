@@ -1,0 +1,36 @@
+namespace OrgNet.Shared.DTOs;
+
+// Auth
+public record LoginRequest(string Email, string Password, string? DeviceFingerprint = null);
+public record RegisterOrganisationRequest(string OrganisationName, string AdminDisplayName, string Email, string Password);
+public record AuthResponse(bool Success, string AccessToken, string RefreshToken, string DisplayName, string Role, Guid TenantId, string? Error = null);
+public record RefreshTokenRequest(string RefreshToken);
+public record TokenPair(string AccessToken, string RefreshToken);
+
+// Users
+public record UserProfileDto(Guid Id, string DisplayName, string Email, string Role, string? AvatarUrl, DateTime CreatedAt);
+public record UpdateProfileRequest(string? DisplayName, string? AvatarUrl);
+public record InviteUserRequest(string Email, string Role);
+
+// Tenant
+public record TenantInfoDto(Guid Id, string Name, string Slug, string Plan, int MemberCount, DateTime CreatedAt);
+public record UpdateTenantRequest(string? Name, string? Plan);
+
+// Devices
+public record RegisterDeviceRequest(string DeviceName, string Fingerprint, string Platform);
+public record DeviceDto(Guid Id, string DeviceName, string Platform, string TrustLevel, DateTime RegisteredAt, DateTime? LastSeenAt);
+
+// Modules
+public record ModuleInfoDto(string ModuleId, string Name, string Description, string Version, string Status, string? IconUrl);
+public record ToggleModuleRequest(string ModuleId, bool Enabled);
+
+// Service Registry
+public record ServiceEntryDto(string ServiceId, string Name, string Endpoint, string Status);
+
+// Audit
+public record AuditLogDto(Guid Id, string Username, string Action, string EntityType, string? EntityId, string? Details, string? IpAddress, DateTime Timestamp);
+public record AuditPageResult(List<AuditLogDto> Items, int TotalCount, int Page, int PageSize);
+
+// SignalR Events
+public record TenantEventDto(string EventType, string Source, object? Payload, DateTime Timestamp);
+public record NotificationDto(string Title, string Message, string Severity, DateTime Timestamp);

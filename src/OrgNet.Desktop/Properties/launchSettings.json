@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "OrgNet.Desktop (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "OrgNet.Desktop (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}

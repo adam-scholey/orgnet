@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="OrgNet.Desktop.Views.LoginPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <Grid HorizontalAlignment="Center" VerticalAlignment="Center" Width="400">
+        <StackPanel Spacing="16">
+            <TextBlock Text="OrgNet" FontSize="32" FontWeight="Bold" HorizontalAlignment="Center"
+                       Foreground="{StaticResource PrimaryBrush}" Margin="0,0,0,4"/>
+            <TextBlock Text="Digital Operating System" FontSize="14" HorizontalAlignment="Center"
+                       Opacity="0.6" Margin="0,0,0,20"/>
+
+            <InfoBar x:Name="ErrorBar" Severity="Error" Title="Error" IsOpen="False" IsClosable="True"/>
+
+            <!-- Register-only fields -->
+            <TextBox x:Name="OrgNameBox" Header="Organisation Name" Visibility="Collapsed"/>
+            <TextBox x:Name="DisplayNameBox" Header="Display Name" Visibility="Collapsed"/>
+
+            <!-- Shared fields -->
+            <TextBox x:Name="EmailBox" Header="Email" PlaceholderText="you@company.com"/>
+            <PasswordBox x:Name="PasswordBox" Header="Password" PlaceholderText="Enter password"/>
+
+            <Button x:Name="ActionButton" Content="Sign In" Style="{StaticResource PrimaryAction}"
+                    HorizontalAlignment="Stretch" Click="OnActionClicked"/>
+
+            <ProgressBar x:Name="LoadingBar" IsIndeterminate="True" Visibility="Collapsed"/>
+
+            <HyperlinkButton x:Name="ToggleLink" Content="Create a new organisation"
+                             HorizontalAlignment="Center" Click="OnToggleMode"/>
+        </StackPanel>
+    </Grid>
+</Page>

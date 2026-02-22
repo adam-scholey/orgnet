@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="OrgNet.Desktop.Views.SettingsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
+    Loaded="OnLoaded">
+
+    <ScrollViewer Padding="24">
+        <StackPanel Spacing="20" MaxWidth="600" HorizontalAlignment="Left">
+            <TextBlock Text="Settings" FontSize="28" FontWeight="Bold"/>
+            <ProgressBar x:Name="LoadingBar" IsIndeterminate="True" Visibility="Collapsed"/>
+
+            <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" CornerRadius="8" Padding="20">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Organisation" FontSize="18" FontWeight="SemiBold"/>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="Name:" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                        <TextBlock x:Name="TenantNameText" Text="—" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="Plan:" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                        <TextBlock x:Name="PlanText" Text="—" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="Members:" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                        <TextBlock x:Name="MemberCountText" Text="0" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" CornerRadius="8" Padding="20">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Local Cache" FontSize="18" FontWeight="SemiBold"/>
+                    <TextBlock Text="Clear the local SQLite cache to force a full resync from the server." Opacity="0.6" TextWrapping="Wrap"/>
+                    <Button Content="Clear Cache" Click="OnClearCache"/>
+                    <TextBlock x:Name="StatusText" Opacity="0.6" FontSize="12"/>
+                </StackPanel>
+            </Border>
+
+            <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" CornerRadius="8" Padding="20">
+                <StackPanel Spacing="8">
+                    <TextBlock Text="About" FontSize="18" FontWeight="SemiBold"/>
+                    <TextBlock Text="OrgNet Desktop v1.0.0" Opacity="0.6"/>
+                    <TextBlock Text="Windows-native multi-tenant organisational digital operating system" Opacity="0.4" TextWrapping="Wrap"/>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</Page>
