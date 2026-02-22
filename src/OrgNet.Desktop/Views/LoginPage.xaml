@@ -14,21 +14,66 @@
 
             <InfoBar x:Name="ErrorBar" Severity="Error" Title="Error" IsOpen="False" IsClosable="True"/>
 
-            <!-- Register-only fields -->
-            <TextBox x:Name="OrgNameBox" Header="Organisation Name" Visibility="Collapsed"/>
-            <TextBox x:Name="DisplayNameBox" Header="Display Name" Visibility="Collapsed"/>
+            <!-- ═══ Login / Register Panel ═══ -->
+            <StackPanel x:Name="LoginPanel" Spacing="16">
+                <!-- Register-only fields -->
+                <TextBox x:Name="OrgNameBox" Header="Organisation Name" Visibility="Collapsed"/>
+                <TextBox x:Name="DisplayNameBox" Header="Display Name" Visibility="Collapsed"/>
 
-            <!-- Shared fields -->
-            <TextBox x:Name="EmailBox" Header="Email" PlaceholderText="you@company.com"/>
-            <PasswordBox x:Name="PasswordBox" Header="Password" PlaceholderText="Enter password"/>
+                <!-- Shared fields -->
+                <TextBox x:Name="EmailBox" Header="Email" PlaceholderText="you@company.com"/>
+                <PasswordBox x:Name="PasswordBox" Header="Password" PlaceholderText="Enter password"/>
 
-            <Button x:Name="ActionButton" Content="Sign In" Style="{StaticResource PrimaryAction}"
-                    HorizontalAlignment="Stretch" Click="OnActionClicked"/>
+                <Button x:Name="ActionButton" Content="Sign In" Style="{StaticResource PrimaryAction}"
+                        HorizontalAlignment="Stretch" Click="OnActionClicked"/>
+            </StackPanel>
+
+            <!-- ═══ Join Organisation Panel ═══ -->
+            <StackPanel x:Name="JoinPanel" Spacing="16" Visibility="Collapsed">
+
+                <!-- Step 1: Paste token -->
+                <StackPanel x:Name="JoinTokenStep" Spacing="12">
+                    <TextBlock Text="Join an Organisation" FontSize="18" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                    <TextBlock Text="Paste the invite token your admin shared with you." Opacity="0.6" TextWrapping="Wrap" HorizontalAlignment="Center"/>
+                    <TextBox x:Name="InviteTokenBox" Header="Invite Token" PlaceholderText="Paste your invite token here"
+                             TextWrapping="Wrap" AcceptsReturn="False"/>
+                    <Button x:Name="LookupButton" Content="Look Up Invitation" Style="{StaticResource PrimaryAction}"
+                            HorizontalAlignment="Stretch" Click="OnLookupClicked"/>
+                </StackPanel>
+
+                <!-- Step 2: Preview + accept -->
+                <StackPanel x:Name="JoinAcceptStep" Spacing="12" Visibility="Collapsed">
+                    <TextBlock Text="You've been invited!" FontSize="18" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+
+                    <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" CornerRadius="8" Padding="16">
+                        <StackPanel Spacing="6">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <FontIcon Glyph="&#xE770;" FontSize="18"/>
+                                <TextBlock x:Name="JoinOrgNameText" FontSize="16" FontWeight="SemiBold"/>
+                            </StackPanel>
+                            <TextBlock x:Name="JoinRoleText" FontSize="13" Opacity="0.6"/>
+                            <TextBlock x:Name="JoinEmailText" FontSize="13" Opacity="0.5"/>
+                            <TextBlock x:Name="JoinInvitedByText" FontSize="12" Opacity="0.4"/>
+                        </StackPanel>
+                    </Border>
+
+                    <TextBox x:Name="JoinDisplayNameBox" Header="Your Display Name" PlaceholderText="How your team will see you"/>
+                    <PasswordBox x:Name="JoinPasswordBox" Header="Create Password" PlaceholderText="Min 8 characters"/>
+
+                    <Button x:Name="JoinButton" Content="Join Organisation" Style="{StaticResource PrimaryAction}"
+                            HorizontalAlignment="Stretch" Click="OnJoinClicked"/>
+                </StackPanel>
+            </StackPanel>
 
             <ProgressBar x:Name="LoadingBar" IsIndeterminate="True" Visibility="Collapsed"/>
 
-            <HyperlinkButton x:Name="ToggleLink" Content="Create a new organisation"
-                             HorizontalAlignment="Center" Click="OnToggleMode"/>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="8">
+                <HyperlinkButton x:Name="ToggleLink" Content="Create a new organisation"
+                                 Click="OnToggleMode"/>
+                <TextBlock Text="·" VerticalAlignment="Center" Opacity="0.3"/>
+                <HyperlinkButton x:Name="JoinLink" Content="Join with invite"
+                                 Click="OnJoinModeClicked"/>
+            </StackPanel>
         </StackPanel>
     </Grid>
 </Page>
