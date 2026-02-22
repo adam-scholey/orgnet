@@ -1,5 +1,6 @@
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using OrgNet.Api.Hubs;
 using OrgNet.Api.Middleware;
@@ -101,25 +102,35 @@ try
     var app = builder.Build();
 
     // ── Database Initialisation ──
-    // In development, recreate the database to pick up schema changes.
-    // In production, use EF Core migrations instead.
     using (var scope = app.Services.CreateScope())
     {
         var db = scope.ServiceProvider.GetRequiredService<OrgNetDbContext>();
         try
         {
-            if (app.Environment.IsDevelopment())
-            {
-                // Drop and recreate to ensure schema matches the model
-                db.Database.EnsureDeleted();
-                db.Database.EnsureCreated();
-                Log.Information("Database recreated (development mode)");
-            }
-            else
-            {
-                db.Database.EnsureCreated();
-                Log.Information("Database ready");
-            }
+            db.Database.EnsureCreated();
+
+            // Create any tables that were added after the initial EnsureCreated.
+            // EnsureCreated only works on a brand-new database; this handles schema drift.
+            await db.Database.ExecuteSqlRawAsync("""
+                CREATE TABLE IF NOT EXISTS "Invitations" (
+                    "Id" uuid NOT NULL,
+                    "TenantId" uuid NOT NULL,
+                    "Email" character varying(256) NOT NULL,
+                    "Role" integer NOT NULL DEFAULT 0,
+                    "Token" character varying(128) NOT NULL,
+                    "InvitedByUserId" uuid NOT NULL,
+                    "CreatedAt" timestamp with time zone NOT NULL DEFAULT NOW(),
+                    "ExpiresAt" timestamp with time zone NOT NULL,
+                    "AcceptedAt" timestamp with time zone,
+                    CONSTRAINT "PK_Invitations" PRIMARY KEY ("Id"),
+                    CONSTRAINT "FK_Invitations_Tenants_TenantId" FOREIGN KEY ("TenantId") REFERENCES "Tenants" ("Id") ON DELETE CASCADE,
+                    CONSTRAINT "FK_Invitations_Users_InvitedByUserId" FOREIGN KEY ("InvitedByUserId") REFERENCES "Users" ("Id") ON DELETE RESTRICT
+                );
+                CREATE UNIQUE INDEX IF NOT EXISTS "IX_Invitations_Token" ON "Invitations" ("Token");
+                CREATE INDEX IF NOT EXISTS "IX_Invitations_TenantId_Email" ON "Invitations" ("TenantId", "Email");
+            """);
+
+            Log.Information("Database ready");
         }
         catch (Exception ex)
         {
