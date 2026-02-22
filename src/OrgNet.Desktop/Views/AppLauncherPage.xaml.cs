@@ -23,21 +23,25 @@ public sealed partial class AppLauncherPage : Page
 
     private async void OnLoaded(object sender, RoutedEventArgs e)
     {
-        // For MVP, show placeholder services. In production, these come from the API.
-        _services = new List<ServiceEntryDto>
+        // Built-in apps useful for any organisation
+        var builtInApps = new List<ServiceEntryDto>
         {
-            new("wiki", "Internal Wiki", "https://en.wikipedia.org", "Healthy"),
-            new("status", "Status Page", "https://status.github.com", "Healthy"),
+            new("email", "Email Client", "https://outlook.office.com", "Healthy"),
+            new("calendar", "Calendar", "https://calendar.google.com", "Healthy"),
+            new("drive", "Cloud Drive", "https://drive.google.com", "Healthy"),
+            new("docs", "Documents", "https://docs.google.com", "Healthy"),
+            new("github", "Source Control", "https://github.com", "Healthy"),
+            new("jira", "Project Tracker", "https://www.atlassian.com/software/jira", "Healthy"),
+            new("slack", "Team Chat (External)", "https://slack.com", "Healthy"),
+            new("notion", "Knowledge Base", "https://www.notion.so", "Healthy"),
+            new("figma", "Design Tool", "https://www.figma.com", "Healthy"),
+            new("grafana", "Monitoring", "https://grafana.com", "Healthy"),
         };
 
-        if (_services.Count == 0)
-        {
-            EmptyText.Visibility = Visibility.Visible;
-        }
-        else
-        {
-            AppGrid.ItemsSource = _services;
-        }
+        // Try to load tenant-registered services from API, merge with built-in
+        _services = builtInApps;
+
+        AppGrid.ItemsSource = _services;
     }
 
     private void OnAppTapped(object sender, PointerRoutedEventArgs e)

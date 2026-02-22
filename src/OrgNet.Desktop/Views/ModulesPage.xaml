@@ -8,32 +8,44 @@
 
     <ScrollViewer Padding="24">
         <StackPanel Spacing="16">
-            <TextBlock Text="Modules" FontSize="28" FontWeight="Bold"/>
-            <TextBlock Text="Enable or disable modules for your organisation" Opacity="0.6"/>
+            <StackPanel Orientation="Horizontal" Spacing="12">
+                <SymbolIcon Symbol="AllApps"/>
+                <TextBlock Text="Modules" FontSize="28" FontWeight="Bold" VerticalAlignment="Center"/>
+            </StackPanel>
+            <TextBlock Text="These are the built-in modules that power your organisation. Each module provides a specific capability — from messaging and file storage to task management and audit logging." Opacity="0.6" TextWrapping="Wrap" MaxWidth="700"/>
+
+            <InfoBar x:Name="ErrorBar" Severity="Error" Title="Error" IsOpen="False" IsClosable="True"/>
             <ProgressBar x:Name="LoadingBar" IsIndeterminate="True" Visibility="Collapsed"/>
+
+            <TextBlock x:Name="ModuleCountText" Opacity="0.5" FontSize="13"/>
 
             <ItemsRepeater x:Name="ModulesList">
                 <ItemsRepeater.Layout>
-                    <StackLayout Spacing="8"/>
+                    <StackLayout Spacing="12"/>
                 </ItemsRepeater.Layout>
                 <ItemsRepeater.ItemTemplate>
                     <DataTemplate>
-                        <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" CornerRadius="8" Padding="16">
-                            <Grid>
+                        <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" CornerRadius="8" Padding="20">
+                            <Grid ColumnSpacing="16">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
-                                <StackPanel Grid.Column="0" Spacing="4">
+                                <StackPanel Grid.Column="0" Spacing="6">
                                     <TextBlock Text="{Binding Name}" FontSize="16" FontWeight="SemiBold"/>
-                                    <TextBlock Text="{Binding Description}" Opacity="0.6" FontSize="13" TextWrapping="Wrap"/>
-                                    <StackPanel Orientation="Horizontal" Spacing="12">
-                                        <TextBlock Text="{Binding Version}" Opacity="0.4" FontSize="12"/>
-                                        <TextBlock Text="{Binding ModuleId}" Opacity="0.3" FontSize="12"/>
+                                    <TextBlock Text="{Binding Description}" Opacity="0.7" FontSize="13" TextWrapping="Wrap"/>
+                                    <StackPanel Orientation="Horizontal" Spacing="16" Margin="0,4,0,0">
+                                        <StackPanel Orientation="Horizontal" Spacing="4">
+                                            <FontIcon Glyph="&#xE7C8;" FontSize="12" Opacity="0.4"/>
+                                            <TextBlock Text="{Binding Version}" Opacity="0.4" FontSize="12"/>
+                                        </StackPanel>
+                                        <TextBlock Text="{Binding ModuleId}" Opacity="0.3" FontSize="11" FontFamily="Consolas"/>
                                     </StackPanel>
                                 </StackPanel>
-                                <TextBlock Grid.Column="1" Text="{Binding Status}" VerticalAlignment="Center"
-                                           FontWeight="SemiBold" FontSize="13"/>
+                                <Border Grid.Column="1" CornerRadius="4" Padding="12,6" VerticalAlignment="Center"
+                                        Background="#1A4CAF50">
+                                    <TextBlock Text="{Binding Status}" FontWeight="SemiBold" FontSize="12" Foreground="LimeGreen"/>
+                                </Border>
                             </Grid>
                         </Border>
                     </DataTemplate>

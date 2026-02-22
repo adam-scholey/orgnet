@@ -35,7 +35,7 @@ public sealed partial class ChatPage : Page
 
         ChannelListView.ItemsSource = _vm.Channels;
         MessageListView.ItemsSource = _vm.Messages;
-        ChannelHeader.Text = $"#{_vm.CurrentChannel}";
+        ChannelHeader.Text = _vm.CurrentChannel;
 
         // Scroll to bottom
         if (_vm.Messages.Count > 0)

@@ -20,6 +20,11 @@ public sealed partial class ModulesPage : Page
             {
                 if (args.PropertyName == nameof(_vm.IsLoading))
                     LoadingBar.Visibility = _vm.IsLoading ? Visibility.Visible : Visibility.Collapsed;
+
+                ModuleCountText.Text = $"{_vm.Modules.Count} modules active";
+
+                ErrorBar.IsOpen = !string.IsNullOrEmpty(_vm.ErrorMessage);
+                if (ErrorBar.IsOpen) ErrorBar.Message = _vm.ErrorMessage!;
             });
         };
     }

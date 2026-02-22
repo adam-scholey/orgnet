@@ -87,6 +87,13 @@ public class OrgNetApiClient
         return response.IsSuccessStatusCode;
     }
 
+    // ── User Management ──
+    public async Task<bool> PostInviteAsync(InviteUserRequest request)
+    {
+        var result = await PostJson<object>("api/tenant/invite", request);
+        return result != null;
+    }
+
     // ── Devices ──
     public async Task<List<DeviceDto>?> GetDevicesAsync() => await GetJson<List<DeviceDto>>("api/devices");
     public async Task<DeviceDto?> RegisterDeviceAsync(RegisterDeviceRequest request)

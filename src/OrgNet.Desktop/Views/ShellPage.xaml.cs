@@ -60,6 +60,9 @@ public sealed partial class ShellPage : Page
                 case "Devices":
                     ContentFrame.Navigate(typeof(DevicesPage));
                     break;
+                case "Users":
+                    ContentFrame.Navigate(typeof(UserManagementPage));
+                    break;
                 case "Chat":
                     ContentFrame.Navigate(typeof(ChatPage));
                     break;

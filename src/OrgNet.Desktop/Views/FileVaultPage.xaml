@@ -16,7 +16,7 @@
 
         <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="12">
             <FontIcon Glyph="&#xE8B7;" FontSize="28"/>
-            <TextBlock Text="Encrypted File Vault" FontSize="24" FontWeight="SemiBold" VerticalAlignment="Center"/>
+            <TextBlock Text="Secure File Storage" FontSize="24" FontWeight="SemiBold" VerticalAlignment="Center"/>
         </StackPanel>
 
         <StackPanel Grid.Row="1" Spacing="8">
