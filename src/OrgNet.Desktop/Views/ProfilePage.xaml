@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="OrgNet.Desktop.Views.ProfilePage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
+    Loaded="OnLoaded">
+
+    <ScrollViewer Padding="32,24,32,24">
+        <StackPanel Spacing="24" MaxWidth="600">
+            <StackPanel Spacing="4">
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                    <FontIcon Glyph="&#xE77B;" FontSize="22" Foreground="{StaticResource PrimaryBrush}"/>
+                    <TextBlock Text="My Profile" Style="{StaticResource PageHeaderText}" VerticalAlignment="Center"/>
+                </StackPanel>
+                <TextBlock Text="View and edit your account details" Style="{StaticResource PageSubHeaderText}"/>
+            </StackPanel>
+
+            <InfoBar x:Name="ErrorBar" Severity="Error" Title="Error" IsOpen="False" IsClosable="True"/>
+            <InfoBar x:Name="StatusBar" Severity="Success" Title="Success" IsOpen="False" IsClosable="True"/>
+            <ProgressBar x:Name="LoadingBar" IsIndeterminate="True" Visibility="Collapsed"/>
+
+            <!-- Avatar -->
+            <StackPanel HorizontalAlignment="Center" Spacing="8">
+                <Border Width="80" Height="80" CornerRadius="40" Background="{StaticResource PrimaryBrush}" HorizontalAlignment="Center">
+                    <TextBlock x:Name="AvatarInitials" Text="?" FontSize="32" FontWeight="Bold" Foreground="White"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+                <TextBlock x:Name="RoleText" HorizontalAlignment="Center" Opacity="0.5" FontSize="13"/>
+            </StackPanel>
+
+            <!-- Profile Fields -->
+            <Border Style="{StaticResource CardBorder}">
+                <StackPanel Spacing="16">
+                    <TextBox x:Name="DisplayNameBox" Header="Display Name" PlaceholderText="Your display name"/>
+                    <TextBox x:Name="EmailBox" Header="Email" IsReadOnly="True" Opacity="0.7"/>
+                    <TextBlock Text="Member since" FontSize="12" Opacity="0.4"/>
+                    <TextBlock x:Name="CreatedAtText" FontSize="13" Opacity="0.6"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Change Password -->
+            <Border Style="{StaticResource CardBorder}">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Change Password" FontSize="16" FontWeight="SemiBold"/>
+                    <PasswordBox x:Name="CurrentPasswordBox" Header="Current Password" PlaceholderText="Enter current password"/>
+                    <PasswordBox x:Name="NewPasswordBox" Header="New Password" PlaceholderText="Enter new password"/>
+                    <PasswordBox x:Name="ConfirmPasswordBox" Header="Confirm New Password" PlaceholderText="Confirm new password"/>
+                    <Button Content="Update Password" Click="OnChangePasswordClicked" Style="{StaticResource PrimaryAction}"/>
+                </StackPanel>
+            </Border>
+
+            <Button Content="Save Profile" Click="OnSaveClicked" Style="{StaticResource PrimaryAction}" HorizontalAlignment="Stretch"/>
+        </StackPanel>
+    </ScrollViewer>
+</Page>

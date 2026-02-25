@@ -22,6 +22,11 @@ public sealed partial class DashboardPage : Page
                 if (args.PropertyName == nameof(_vm.TenantSector)) SectorText.Text = _vm.TenantSector;
                 if (args.PropertyName == nameof(_vm.MemberCount)) MemberCountText.Text = _vm.MemberCount.ToString();
                 if (args.PropertyName == nameof(_vm.IsLoading)) LoadingBar.Visibility = _vm.IsLoading ? Visibility.Visible : Visibility.Collapsed;
+                if (args.PropertyName == nameof(_vm.StatTasks)) StatTasksText.Text = _vm.StatTasks.ToString();
+                if (args.PropertyName == nameof(_vm.StatTasksDone)) StatTasksDoneText.Text = _vm.StatTasksDone.ToString();
+                if (args.PropertyName == nameof(_vm.StatFiles)) StatFilesText.Text = _vm.StatFiles.ToString();
+                if (args.PropertyName == nameof(_vm.StatNotes)) StatNotesText.Text = _vm.StatNotes.ToString();
+                if (args.PropertyName == nameof(_vm.StatChats)) StatChatsText.Text = _vm.StatChats.ToString();
             });
         };
 

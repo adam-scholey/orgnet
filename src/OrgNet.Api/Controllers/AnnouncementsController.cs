@@ -42,6 +42,23 @@ public class AnnouncementsController : ControllerBase
         return Ok(announcements);
     }
 
+    [HttpGet("search")]
+    public async Task<ActionResult<List<AnnouncementDto>>> SearchAnnouncements([FromQuery] string q)
+    {
+        if (string.IsNullOrWhiteSpace(q)) return Ok(new List<AnnouncementDto>());
+
+        var query = q.ToLower();
+        var results = await _db.Announcements
+            .Include(a => a.Author)
+            .Where(a => a.Title.ToLower().Contains(query) || a.Body.ToLower().Contains(query))
+            .OrderByDescending(a => a.PublishedAt)
+            .Take(50)
+            .Select(a => new AnnouncementDto(a.Id, a.Title, a.Body, a.IsPinned, a.Author.DisplayName, a.PublishedAt, a.ExpiresAt))
+            .ToListAsync();
+
+        return Ok(results);
+    }
+
     [HttpPost]
     [Authorize(Roles = "Owner,Admin")]
     public async Task<ActionResult<AnnouncementDto>> Create([FromBody] CreateAnnouncementRequest request)

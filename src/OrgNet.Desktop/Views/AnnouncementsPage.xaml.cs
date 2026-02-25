@@ -35,6 +35,7 @@ public sealed partial class AnnouncementsPage : Page
         if (StatusBar.IsOpen) StatusBar.Message = _vm.StatusMessage!;
 
         AnnouncementListView.ItemsSource = _vm.Announcements;
+        EmptyText.Visibility = _vm.Announcements.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
     }
 
     private async void OnNewAnnouncementClicked(object sender, RoutedEventArgs e)

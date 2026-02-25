@@ -6,11 +6,18 @@
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
     Loaded="OnLoaded">
 
-    <ScrollViewer Padding="24">
-        <StackPanel Spacing="16">
-            <TextBlock Text="Devices" FontSize="28" FontWeight="Bold"/>
-            <TextBlock Text="Registered devices and their trust status" Opacity="0.6"/>
+    <ScrollViewer Padding="32,24,32,24">
+        <StackPanel Spacing="20">
+            <StackPanel Spacing="4">
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                    <FontIcon Glyph="&#xE8EA;" FontSize="22" Foreground="{StaticResource PrimaryBrush}"/>
+                    <TextBlock Text="Devices" Style="{StaticResource PageHeaderText}" VerticalAlignment="Center"/>
+                </StackPanel>
+                <TextBlock Text="Registered devices and their trust status" Style="{StaticResource PageSubHeaderText}"/>
+            </StackPanel>
             <ProgressBar x:Name="LoadingBar" IsIndeterminate="True" Visibility="Collapsed"/>
+
+            <TextBlock x:Name="EmptyText" Text="No devices registered yet" Opacity="0.4" HorizontalAlignment="Center" Margin="0,40,0,0" Visibility="Collapsed"/>
 
             <ItemsRepeater x:Name="DevicesList">
                 <ItemsRepeater.Layout>
@@ -18,7 +25,7 @@
                 </ItemsRepeater.Layout>
                 <ItemsRepeater.ItemTemplate>
                     <DataTemplate>
-                        <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" CornerRadius="8" Padding="16">
+                        <Border Style="{StaticResource CardBorder}">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
@@ -31,8 +38,10 @@
                                         <TextBlock Text="{Binding RegisteredAt}" Opacity="0.4" FontSize="12"/>
                                     </StackPanel>
                                 </StackPanel>
-                                <TextBlock Grid.Column="1" Text="{Binding TrustLevel}" VerticalAlignment="Center"
-                                           FontWeight="SemiBold" FontSize="13"/>
+                                <Border Grid.Column="1" CornerRadius="4" Padding="10,4" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding TrustLevel}" VerticalAlignment="Center"
+                                               FontWeight="SemiBold" FontSize="13"/>
+                                </Border>
                             </Grid>
                         </Border>
                     </DataTemplate>

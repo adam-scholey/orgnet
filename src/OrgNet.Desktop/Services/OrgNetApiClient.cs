@@ -193,6 +193,36 @@ public class OrgNetApiClient
     public async Task<AnnouncementDto?> CreateAnnouncementAsync(CreateAnnouncementRequest request) => await PostJson<AnnouncementDto>("api/announcements", request);
     public async Task<bool> DeleteAnnouncementAsync(Guid id) => await DeleteRequest($"api/announcements/{id}");
 
+    // ── Dashboard Stats (#14) ──
+    public async Task<DashboardStatsDto?> GetDashboardStatsAsync() => await GetJson<DashboardStatsDto>("api/tenant/stats");
+
+    // ── Export (#16) ──
+    public async Task<byte[]?> ExportTasksCsvAsync()
+    {
+        LastError = null;
+        try
+        {
+            AttachHeaders();
+            var response = await _http.GetAsync("api/tenant/export/tasks");
+            if (!response.IsSuccessStatusCode) { LastError = $"Export failed: {(int)response.StatusCode}"; return null; }
+            return await response.Content.ReadAsByteArrayAsync();
+        }
+        catch (Exception ex) { LastError = ex.Message; return null; }
+    }
+
+    public async Task<byte[]?> ExportAuditCsvAsync()
+    {
+        LastError = null;
+        try
+        {
+            AttachHeaders();
+            var response = await _http.GetAsync("api/tenant/export/audit");
+            if (!response.IsSuccessStatusCode) { LastError = $"Export failed: {(int)response.StatusCode}"; return null; }
+            return await response.Content.ReadAsByteArrayAsync();
+        }
+        catch (Exception ex) { LastError = ex.Message; return null; }
+    }
+
     // ── Helpers ──
     public string? LastError { get; private set; }
 

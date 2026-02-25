@@ -41,6 +41,27 @@ public class NotesController : ControllerBase
         return Ok(notes);
     }
 
+    [HttpGet("search")]
+    public async Task<ActionResult<List<CollabNoteDto>>> SearchNotes([FromQuery] string q)
+    {
+        if (string.IsNullOrWhiteSpace(q)) return Ok(new List<CollabNoteDto>());
+
+        var query = q.ToLower();
+        var notes = await _db.CollabNotes
+            .Include(n => n.CreatedBy)
+            .Where(n => n.Title.ToLower().Contains(query) || n.Content.ToLower().Contains(query))
+            .OrderByDescending(n => n.LastEditedAt ?? n.CreatedAt)
+            .Take(50)
+            .Select(n => new CollabNoteDto(
+                n.Id, n.Title, n.Content, n.IsPinned,
+                n.CreatedBy.DisplayName,
+                n.LastEditedByUserId != null ? _db.Users.Where(u => u.Id == n.LastEditedByUserId).Select(u => u.DisplayName).FirstOrDefault() : null,
+                n.CreatedAt, n.LastEditedAt))
+            .ToListAsync();
+
+        return Ok(notes);
+    }
+
     [HttpGet("{id}")]
     public async Task<ActionResult<CollabNoteDto>> GetNote(Guid id)
     {

@@ -37,6 +37,28 @@ public class CredentialStore : ICredentialStore
         return Guid.TryParse(value, out var id) ? id : null;
     }
 
+    public string? GetUserRole() => GetClaimFromToken("role");
+    public string? GetDisplayName() => GetClaimFromToken("name");
+
+    private string? GetClaimFromToken(string claimType)
+    {
+        var token = GetAccessToken();
+        if (string.IsNullOrEmpty(token)) return null;
+        try
+        {
+            var parts = token.Split('.');
+            if (parts.Length != 3) return null;
+            var payload = parts[1];
+            // Pad base64
+            payload = payload.Replace('-', '+').Replace('_', '/');
+            switch (payload.Length % 4) { case 2: payload += "=="; break; case 3: payload += "="; break; }
+            var json = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(payload));
+            var doc = System.Text.Json.JsonDocument.Parse(json);
+            return doc.RootElement.TryGetProperty(claimType, out var val) ? val.GetString() : null;
+        }
+        catch { return null; }
+    }
+
     public void Clear()
     {
         try

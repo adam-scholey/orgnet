@@ -40,6 +40,7 @@ public sealed partial class TaskBoardPage : Page
         InProgressCountText.Text = _vm.InProgressCount.ToString();
         ReviewCountText.Text = _vm.ReviewCount.ToString();
         DoneCountText.Text = _vm.DoneCount.ToString();
+        EmptyText.Visibility = _vm.Tasks.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
     }
 
     private async void OnNewTaskClicked(object sender, RoutedEventArgs e)

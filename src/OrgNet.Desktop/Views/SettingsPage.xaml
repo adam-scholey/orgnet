@@ -55,6 +55,38 @@
                 </StackPanel>
             </Border>
 
+            <!-- Theme Toggle (#11) -->
+            <Border Style="{StaticResource CardBorder}">
+                <StackPanel Spacing="12">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon Glyph="&#xE793;" FontSize="18" Foreground="{StaticResource AccentBrush}"/>
+                        <TextBlock Text="Appearance" FontSize="18" FontWeight="SemiBold"/>
+                    </StackPanel>
+                    <TextBlock Text="Switch between light and dark themes" Opacity="0.6"/>
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <RadioButton x:Name="LightRadio" Content="Light" GroupName="Theme" Click="OnThemeChanged" Tag="Light"/>
+                        <RadioButton x:Name="DarkRadio" Content="Dark" GroupName="Theme" Click="OnThemeChanged" Tag="Dark"/>
+                        <RadioButton x:Name="DefaultRadio" Content="System Default" GroupName="Theme" Click="OnThemeChanged" Tag="Default" IsChecked="True"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- Export (#16) -->
+            <Border Style="{StaticResource CardBorder}">
+                <StackPanel Spacing="12">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon Glyph="&#xEDE1;" FontSize="18" Foreground="{StaticResource SuccessBrush}"/>
+                        <TextBlock Text="Export Data" FontSize="18" FontWeight="SemiBold"/>
+                    </StackPanel>
+                    <TextBlock Text="Download organisation data as CSV files" Opacity="0.6"/>
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <Button Content="Export Tasks CSV" Click="OnExportTasks" Style="{StaticResource Action}"/>
+                        <Button Content="Export Audit CSV" Click="OnExportAudit" Style="{StaticResource Action}"/>
+                    </StackPanel>
+                    <TextBlock x:Name="ExportStatusText" Opacity="0.6" FontSize="12"/>
+                </StackPanel>
+            </Border>
+
             <Border Style="{StaticResource CardBorder}">
                 <StackPanel Spacing="8">
                     <StackPanel Orientation="Horizontal" Spacing="8">

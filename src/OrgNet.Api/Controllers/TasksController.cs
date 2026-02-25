@@ -52,6 +52,30 @@ public class TasksController : ControllerBase
         return Ok(tasks);
     }
 
+    [HttpGet("search")]
+    public async Task<ActionResult<List<TaskItemDto>>> SearchTasks([FromQuery] string q)
+    {
+        if (string.IsNullOrWhiteSpace(q)) return Ok(new List<TaskItemDto>());
+
+        var query = q.ToLower();
+        var tasks = await _db.TaskItems
+            .Include(t => t.CreatedBy)
+            .Include(t => t.AssignedTo)
+            .Where(t => t.Title.ToLower().Contains(query) || (t.Description != null && t.Description.ToLower().Contains(query)))
+            .OrderByDescending(t => t.CreatedAt)
+            .Take(50)
+            .Select(t => new TaskItemDto(
+                t.Id, t.Title, t.Description,
+                t.Status.ToString(), t.Priority.ToString(),
+                t.CreatedBy.DisplayName,
+                t.AssignedTo != null ? t.AssignedTo.DisplayName : null,
+                t.AssignedToUserId,
+                t.CreatedAt, t.DueDate, t.CompletedAt))
+            .ToListAsync();
+
+        return Ok(tasks);
+    }
+
     [HttpGet("summary")]
     public async Task<ActionResult<TaskBoardSummary>> GetSummary()
     {

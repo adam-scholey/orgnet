@@ -56,6 +56,43 @@
                 </Border>
             </StackPanel>
 
+            <!-- Activity Stats (#14) -->
+            <StackPanel Spacing="8">
+                <TextBlock Text="Activity Overview" FontSize="18" FontWeight="SemiBold"/>
+                <StackPanel Orientation="Horizontal" Spacing="12">
+                    <Border Style="{StaticResource CardBorder}" MinWidth="120">
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="Tasks" Style="{StaticResource KpiLabel}"/>
+                            <TextBlock x:Name="StatTasksText" Text="0" Style="{StaticResource KpiValue}"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource CardBorder}" MinWidth="120">
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="Completed" Style="{StaticResource KpiLabel}"/>
+                            <TextBlock x:Name="StatTasksDoneText" Text="0" Style="{StaticResource KpiValue}" Foreground="{StaticResource SuccessBrush}"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource CardBorder}" MinWidth="120">
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="Files" Style="{StaticResource KpiLabel}"/>
+                            <TextBlock x:Name="StatFilesText" Text="0" Style="{StaticResource KpiValue}"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource CardBorder}" MinWidth="120">
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="Notes" Style="{StaticResource KpiLabel}"/>
+                            <TextBlock x:Name="StatNotesText" Text="0" Style="{StaticResource KpiValue}"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource CardBorder}" MinWidth="120">
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="Channels" Style="{StaticResource KpiLabel}"/>
+                            <TextBlock x:Name="StatChatsText" Text="0" Style="{StaticResource KpiValue}" Foreground="{StaticResource AccentBrush}"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </StackPanel>
+
             <!-- Live Events -->
             <StackPanel Spacing="12">
                 <StackPanel Orientation="Horizontal" Spacing="8">

@@ -76,6 +76,11 @@
             </NavigationView.MenuItems>
 
             <NavigationView.FooterMenuItems>
+                <NavigationViewItem Content="Profile" Tag="Profile">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE77B;"/>
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
                 <NavigationViewItem Content="Logout" Tag="Logout">
                     <NavigationViewItem.Icon>
                         <SymbolIcon Symbol="BlockContact"/>
@@ -92,7 +97,14 @@
                 </Grid>
             </NavigationView.Header>
 
-            <Frame x:Name="ContentFrame"/>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <InfoBar x:Name="NotificationBar" Grid.Row="0" IsOpen="False" IsClosable="True" Margin="0,0,0,4"/>
+                <Frame x:Name="ContentFrame" Grid.Row="1"/>
+            </Grid>
         </NavigationView>
     </Grid>
 </Page>

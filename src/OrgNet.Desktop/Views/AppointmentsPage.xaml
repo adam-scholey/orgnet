@@ -6,7 +6,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <Grid Padding="24" RowSpacing="16">
+    <Grid Padding="32,24,32,24" RowSpacing="16">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -15,12 +15,15 @@
         </Grid.RowDefinitions>
 
         <!-- Header -->
-        <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="12">
-            <FontIcon Glyph="&#xE787;" FontSize="28"/>
-            <TextBlock Text="Appointments" FontSize="24" FontWeight="SemiBold" VerticalAlignment="Center"/>
-            <Button x:Name="RefreshButton" Click="OnRefreshClicked" VerticalAlignment="Center">
-                <SymbolIcon Symbol="Refresh"/>
-            </Button>
+        <StackPanel Grid.Row="0" Spacing="4">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+                <FontIcon Glyph="&#xE787;" FontSize="22" Foreground="{StaticResource PrimaryBrush}"/>
+                <TextBlock Text="Appointments" Style="{StaticResource PageHeaderText}" VerticalAlignment="Center"/>
+                <Button x:Name="RefreshButton" Click="OnRefreshClicked" VerticalAlignment="Center" Padding="6">
+                    <FontIcon Glyph="&#xE72C;" FontSize="14"/>
+                </Button>
+            </StackPanel>
+            <TextBlock Text="Schedule and manage appointments" Style="{StaticResource PageSubHeaderText}"/>
         </StackPanel>
 
         <!-- Error Bar -->
@@ -62,24 +65,40 @@
             </Grid>
         </Expander>
 
-        <!-- Appointments List -->
-        <Grid Grid.Row="3" RowSpacing="8">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
+        <!-- Calendar + List (#7) -->
+        <Grid Grid.Row="3" ColumnSpacing="16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
 
-            <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8">
-                <ComboBox x:Name="RangeCombo" SelectedIndex="1" SelectionChanged="OnRangeChanged" Width="140">
-                    <ComboBoxItem Content="Today" Tag="today"/>
-                    <ComboBoxItem Content="This Week" Tag="week"/>
-                    <ComboBoxItem Content="This Month" Tag="month"/>
-                    <ComboBoxItem Content="All" Tag="all"/>
-                </ComboBox>
-                <TextBlock x:Name="CountText" VerticalAlignment="Center" Opacity="0.5" FontSize="12"/>
-            </StackPanel>
+            <!-- Calendar View (#7) -->
+            <CalendarView x:Name="AppointmentCalendar" Grid.Column="0"
+                          CalendarViewDayItemChanging="OnCalendarDayItemChanging"
+                          SelectedDatesChanged="OnCalendarDateSelected"
+                          SelectionMode="Single"
+                          MinWidth="300" MaxHeight="360"/>
 
-            <ListView x:Name="AppointmentListView" Grid.Row="1" SelectionMode="None">
+            <!-- List -->
+            <Grid Grid.Column="1" RowSpacing="8">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8">
+                    <ComboBox x:Name="RangeCombo" SelectedIndex="1" SelectionChanged="OnRangeChanged" Width="140">
+                        <ComboBoxItem Content="Today" Tag="today"/>
+                        <ComboBoxItem Content="This Week" Tag="week"/>
+                        <ComboBoxItem Content="This Month" Tag="month"/>
+                        <ComboBoxItem Content="All" Tag="all"/>
+                    </ComboBox>
+                    <TextBlock x:Name="CountText" VerticalAlignment="Center" Opacity="0.5" FontSize="12"/>
+                </StackPanel>
+
+                <TextBlock x:Name="EmptyText" Grid.Row="1" Text="No appointments scheduled" Opacity="0.4" HorizontalAlignment="Center" Margin="0,40,0,0" Visibility="Collapsed"/>
+
+                <ListView x:Name="AppointmentListView" Grid.Row="1" SelectionMode="None">
                 <ListView.ItemTemplate>
                     <DataTemplate>
                         <Grid Padding="12,8" ColumnSpacing="16">
@@ -116,7 +135,8 @@
                         </Grid>
                     </DataTemplate>
                 </ListView.ItemTemplate>
-            </ListView>
+                </ListView>
+            </Grid>
         </Grid>
 
         <ProgressBar x:Name="LoadingBar" Grid.RowSpan="4" IsIndeterminate="True" Visibility="Collapsed" VerticalAlignment="Top"/>

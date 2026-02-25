@@ -19,6 +19,10 @@ public class SignalRService : IAsyncDisposable
 
     public event Action<TenantEventDto>? OnTenantEvent;
     public event Action<NotificationDto>? OnNotification;
+    public event Action<ChatMessageDto>? OnChatMessage;
+    public event Action<ChatMessageDto>? OnChatMessageEdited;
+    public event Action<Guid>? OnChatMessageDeleted;
+    public event Action<AnnouncementDto>? OnAnnouncement;
     public event Action<bool>? OnConnectionChanged;
 
     public SignalRService(ICredentialStore credentials, IConfiguration configuration)
@@ -51,6 +55,26 @@ public class SignalRService : IAsyncDisposable
         _hub.On<NotificationDto>("ReceiveNotification", notification =>
         {
             OnNotification?.Invoke(notification);
+        });
+
+        _hub.On<ChatMessageDto>("ReceiveChatMessage", msg =>
+        {
+            OnChatMessage?.Invoke(msg);
+        });
+
+        _hub.On<ChatMessageDto>("ChatMessageEdited", msg =>
+        {
+            OnChatMessageEdited?.Invoke(msg);
+        });
+
+        _hub.On("ChatMessageDeleted", (Guid id) =>
+        {
+            OnChatMessageDeleted?.Invoke(id);
+        });
+
+        _hub.On<AnnouncementDto>("ReceiveAnnouncement", announcement =>
+        {
+            OnAnnouncement?.Invoke(announcement);
         });
 
         _hub.Reconnected += _ =>

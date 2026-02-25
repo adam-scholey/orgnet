@@ -39,6 +39,7 @@ public sealed partial class FileVaultPage : Page
 
         FileListView.ItemsSource = _vm.Files;
         FileCountText.Text = $"{_vm.Files.Count} files";
+        EmptyText.Visibility = _vm.Files.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
     }
 
     private async void OnUploadClicked(object sender, RoutedEventArgs e)
@@ -187,5 +188,11 @@ public sealed partial class FileVaultPage : Page
         await _vm.LoadAsync();
         UpdateUI();
         LoadingBar.Visibility = Visibility.Collapsed;
+    }
+
+    private void OnClosePreview(object sender, RoutedEventArgs e)
+    {
+        PreviewPanel.Visibility = Visibility.Collapsed;
+        PreviewImage.Source = null;
     }
 }

@@ -95,7 +95,7 @@ public partial class LoginViewModel : ObservableObject
             {
                 _credentials.StoreTokens(result.AccessToken, result.RefreshToken, result.TenantId);
                 await _signalR.ConnectAsync();
-                _navigation.NavigateTo(typeof(Views.ShellPage));
+                _navigation.NavigateTo(typeof(Views.OnboardingPage)); // #13 Onboarding after registration
             }
             else
             {

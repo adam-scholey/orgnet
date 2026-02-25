@@ -6,7 +6,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <Grid Padding="24" RowSpacing="16">
+    <Grid Padding="32,24,32,24" RowSpacing="16">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -15,9 +15,12 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="12">
-            <FontIcon Glyph="&#xE9D5;" FontSize="28"/>
-            <TextBlock Text="Task Board" FontSize="24" FontWeight="SemiBold" VerticalAlignment="Center"/>
+        <StackPanel Grid.Row="0" Spacing="4">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+                <FontIcon Glyph="&#xE9D5;" FontSize="22" Foreground="{StaticResource PrimaryBrush}"/>
+                <TextBlock Text="Task Board" Style="{StaticResource PageHeaderText}" VerticalAlignment="Center"/>
+            </StackPanel>
+            <TextBlock Text="Kanban-style task management" Style="{StaticResource PageSubHeaderText}"/>
         </StackPanel>
 
         <StackPanel Grid.Row="1" Spacing="8">
@@ -25,43 +28,15 @@
             <InfoBar x:Name="StatusBar" Severity="Success" Title="Success" IsOpen="False" IsClosable="True"/>
         </StackPanel>
 
-        <!-- Summary Cards -->
-        <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="16">
-            <Border CornerRadius="8" Padding="16,12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" MinWidth="100">
-                <StackPanel>
-                    <TextBlock Text="To Do" FontSize="12" Opacity="0.6"/>
-                    <TextBlock x:Name="TodoCountText" Text="0" FontSize="28" FontWeight="Bold"/>
-                </StackPanel>
-            </Border>
-            <Border CornerRadius="8" Padding="16,12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" MinWidth="100">
-                <StackPanel>
-                    <TextBlock Text="In Progress" FontSize="12" Opacity="0.6"/>
-                    <TextBlock x:Name="InProgressCountText" Text="0" FontSize="28" FontWeight="Bold" Foreground="DodgerBlue"/>
-                </StackPanel>
-            </Border>
-            <Border CornerRadius="8" Padding="16,12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" MinWidth="100">
-                <StackPanel>
-                    <TextBlock Text="Review" FontSize="12" Opacity="0.6"/>
-                    <TextBlock x:Name="ReviewCountText" Text="0" FontSize="28" FontWeight="Bold" Foreground="Orange"/>
-                </StackPanel>
-            </Border>
-            <Border CornerRadius="8" Padding="16,12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" MinWidth="100">
-                <StackPanel>
-                    <TextBlock Text="Done" FontSize="12" Opacity="0.6"/>
-                    <TextBlock x:Name="DoneCountText" Text="0" FontSize="28" FontWeight="Bold" Foreground="LimeGreen"/>
-                </StackPanel>
-            </Border>
-        </StackPanel>
-
         <!-- Toolbar -->
-        <StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="12">
-            <Button Click="OnNewTaskClicked" Style="{StaticResource AccentButtonStyle}">
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="12">
+            <Button Click="OnNewTaskClicked" Style="{StaticResource PrimaryAction}">
                 <StackPanel Orientation="Horizontal" Spacing="6">
                     <FontIcon Glyph="&#xE710;" FontSize="14"/>
                     <TextBlock Text="New Task"/>
                 </StackPanel>
             </Button>
-            <Button Click="OnRefreshClicked">
+            <Button Click="OnRefreshClicked" Style="{StaticResource Action}">
                 <StackPanel Orientation="Horizontal" Spacing="6">
                     <FontIcon Glyph="&#xE72C;" FontSize="14"/>
                     <TextBlock Text="Refresh"/>
@@ -69,7 +44,63 @@
             </Button>
         </StackPanel>
 
-        <!-- Task List -->
+        <!-- Kanban Columns -->
+        <Grid Grid.Row="3" ColumnSpacing="12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Todo Column -->
+            <Border Grid.Column="0" Style="{StaticResource CardBorder}">
+                <StackPanel Spacing="8">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <Ellipse Width="10" Height="10" Fill="{StaticResource SubtleBrush}"/>
+                        <TextBlock Text="To Do" FontWeight="SemiBold"/>
+                        <TextBlock x:Name="TodoCountText" Text="0" Style="{StaticResource KpiLabel}" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- In Progress Column -->
+            <Border Grid.Column="1" Style="{StaticResource CardBorder}">
+                <StackPanel Spacing="8">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <Ellipse Width="10" Height="10" Fill="{StaticResource AccentBrush}"/>
+                        <TextBlock Text="In Progress" FontWeight="SemiBold"/>
+                        <TextBlock x:Name="InProgressCountText" Text="0" Style="{StaticResource KpiLabel}" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- Review Column -->
+            <Border Grid.Column="2" Style="{StaticResource CardBorder}">
+                <StackPanel Spacing="8">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <Ellipse Width="10" Height="10" Fill="{StaticResource WarningBrush}"/>
+                        <TextBlock Text="Review" FontWeight="SemiBold"/>
+                        <TextBlock x:Name="ReviewCountText" Text="0" Style="{StaticResource KpiLabel}" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- Done Column -->
+            <Border Grid.Column="3" Style="{StaticResource CardBorder}">
+                <StackPanel Spacing="8">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <Ellipse Width="10" Height="10" Fill="{StaticResource SuccessBrush}"/>
+                        <TextBlock Text="Done" FontWeight="SemiBold"/>
+                        <TextBlock x:Name="DoneCountText" Text="0" Style="{StaticResource KpiLabel}" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- Task List (all tasks below kanban summary) -->
+        <TextBlock x:Name="EmptyText" Grid.Row="4" Text="No tasks yet. Create your first task to get started." Opacity="0.4" HorizontalAlignment="Center" Margin="0,40,0,0" Visibility="Collapsed"/>
+
         <ListView x:Name="TaskListView" Grid.Row="4" SelectionMode="None">
             <ListView.ItemTemplate>
                 <DataTemplate>
@@ -80,11 +111,10 @@
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
 
                         <ComboBox Grid.Column="0" Tag="{Binding Id}" SelectionChanged="OnStatusChanged"
-                                  SelectedItem="{Binding Status}" MinWidth="110">
+                                  SelectedItem="{Binding Status}" MinWidth="120">
                             <ComboBoxItem Content="Todo"/>
                             <ComboBoxItem Content="InProgress"/>
                             <ComboBoxItem Content="Review"/>
@@ -107,7 +137,7 @@
                         <TextBlock Grid.Column="3" Text="{Binding DueDate}" FontSize="11" Opacity="0.5" VerticalAlignment="Center"/>
 
                         <Button Grid.Column="4" ToolTipService.ToolTip="Delete" Click="OnDeleteTaskClicked" Tag="{Binding Id}" Padding="6">
-                            <FontIcon Glyph="&#xE74D;" FontSize="14" Foreground="IndianRed"/>
+                            <FontIcon Glyph="&#xE74D;" FontSize="14" Foreground="{StaticResource DangerBrush}"/>
                         </Button>
                     </Grid>
                 </DataTemplate>

@@ -54,6 +54,23 @@ public class FilesController : ControllerBase
         return Ok(files);
     }
 
+    [HttpGet("search")]
+    public async Task<ActionResult<List<OrgFileDto>>> SearchFiles([FromQuery] string q)
+    {
+        if (string.IsNullOrWhiteSpace(q)) return Ok(new List<OrgFileDto>());
+
+        var query = q.ToLower();
+        var files = await _db.OrgFiles
+            .Include(f => f.UploadedBy)
+            .Where(f => f.FileName.ToLower().Contains(query))
+            .OrderByDescending(f => f.UploadedAt)
+            .Take(50)
+            .Select(f => new OrgFileDto(f.Id, f.FileName, f.ContentType, f.FileSize, f.IsShared, f.UploadedBy.DisplayName, f.UploadedAt))
+            .ToListAsync();
+
+        return Ok(files);
+    }
+
     [HttpPost("upload")]
     [EnableRateLimiting("FileUploads")]
     public async Task<ActionResult<OrgFileDto>> Upload([FromBody] UploadFileRequest request)

@@ -38,6 +38,7 @@ public partial class App : Application
                 services.AddSingleton<SignalRService>();
                 services.AddSingleton<LocalCacheService>();
                 services.AddSingleton<DesktopPluginLoader>();
+                services.AddSingleton<NotificationService>();
 
                 // ── Background Services ──
                 services.AddHostedService<HeartbeatService>();

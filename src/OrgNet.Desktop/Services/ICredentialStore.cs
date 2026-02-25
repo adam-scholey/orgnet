@@ -10,5 +10,7 @@ public interface ICredentialStore
     string? GetAccessToken();
     string? GetRefreshToken();
     Guid? GetTenantId();
+    string? GetUserRole();
+    string? GetDisplayName();
     void Clear();
 }

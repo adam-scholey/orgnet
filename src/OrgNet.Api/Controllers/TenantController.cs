@@ -115,6 +115,64 @@ public class TenantController : ControllerBase
         return Ok(new InviteResponse(true, inviteLink, token, invitation.ExpiresAt));
     }
 
+    /// <summary>Aggregate KPIs for the dashboard (#14)</summary>
+    [HttpGet("stats")]
+    public async Task<ActionResult<DashboardStatsDto>> GetStats()
+    {
+        var members = await _db.Users.CountAsync();
+        var totalTasks = await _db.TaskItems.CountAsync();
+        var tasksDone = await _db.TaskItems.CountAsync(t => t.Status == OrgNet.Shared.Enums.TaskItemStatus.Done);
+        var totalFiles = await _db.OrgFiles.CountAsync();
+        var totalNotes = await _db.CollabNotes.CountAsync();
+        var totalAnnouncements = await _db.Announcements.CountAsync(a => a.ExpiresAt == null || a.ExpiresAt > DateTime.UtcNow);
+        var totalAppointments = await _db.Appointments.CountAsync(a => !a.IsCancelled && a.EndsAt > DateTime.UtcNow);
+        var activeChats = await _db.ChatMessages.Select(m => m.Channel).Distinct().CountAsync();
+
+        return Ok(new DashboardStatsDto(members, totalTasks, tasksDone, totalFiles, totalNotes, totalAnnouncements, totalAppointments, activeChats));
+    }
+
+    /// <summary>Export tasks as CSV (#16)</summary>
+    [HttpGet("export/tasks")]
+    public async Task<ActionResult> ExportTasksCsv()
+    {
+        var tasks = await _db.TaskItems
+            .Include(t => t.CreatedBy)
+            .Include(t => t.AssignedTo)
+            .OrderBy(t => t.Status)
+            .ThenByDescending(t => t.Priority)
+            .ToListAsync();
+
+        var sb = new System.Text.StringBuilder();
+        sb.AppendLine("Id,Title,Status,Priority,CreatedBy,AssignedTo,CreatedAt,DueDate,CompletedAt");
+        foreach (var t in tasks)
+        {
+            sb.AppendLine($"\"{t.Id}\",\"{Escape(t.Title)}\",\"{t.Status}\",\"{t.Priority}\",\"{Escape(t.CreatedBy.DisplayName)}\",\"{Escape(t.AssignedTo?.DisplayName)}\",\"{t.CreatedAt:O}\",\"{t.DueDate:O}\",\"{t.CompletedAt:O}\"");
+        }
+
+        return File(System.Text.Encoding.UTF8.GetBytes(sb.ToString()), "text/csv", "tasks-export.csv");
+    }
+
+    /// <summary>Export audit log as CSV (#16)</summary>
+    [HttpGet("export/audit")]
+    public async Task<ActionResult> ExportAuditCsv()
+    {
+        var logs = await _db.AuditLogs
+            .OrderByDescending(a => a.Timestamp)
+            .Take(1000)
+            .ToListAsync();
+
+        var sb = new System.Text.StringBuilder();
+        sb.AppendLine("Id,Action,EntityType,EntityId,User,Timestamp,Details");
+        foreach (var a in logs)
+        {
+            sb.AppendLine($"\"{a.Id}\",\"{a.Action}\",\"{Escape(a.EntityType)}\",\"{a.EntityId}\",\"{Escape(a.Username)}\",\"{a.Timestamp:O}\",\"{Escape(a.Details)}\"");
+        }
+
+        return File(System.Text.Encoding.UTF8.GetBytes(sb.ToString()), "text/csv", "audit-export.csv");
+    }
+
+    private static string Escape(string? value) => value?.Replace("\"", "\"\"") ?? "";
+
     [HttpGet("invitations")]
     [Authorize(Roles = "Owner,Admin")]
     public async Task<ActionResult<List<InvitationInfoDto>>> GetInvitations()

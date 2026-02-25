@@ -9,8 +9,31 @@ namespace OrgNet.Desktop.ViewModels;
 public partial class ChatViewModel : ObservableObject
 {
     private readonly OrgNetApiClient _api;
+    private readonly SignalRService _signalR;
 
-    public ChatViewModel(OrgNetApiClient api) => _api = api;
+    public ChatViewModel(OrgNetApiClient api, SignalRService signalR)
+    {
+        _api = api;
+        _signalR = signalR;
+
+        _signalR.OnChatMessage += msg =>
+        {
+            if (msg.Channel == CurrentChannel && Messages.All(m => m.Id != msg.Id))
+                Messages.Add(msg);
+        };
+
+        _signalR.OnChatMessageEdited += msg =>
+        {
+            for (int i = 0; i < Messages.Count; i++)
+                if (Messages[i].Id == msg.Id) { Messages[i] = msg; break; }
+        };
+
+        _signalR.OnChatMessageDeleted += id =>
+        {
+            var toRemove = Messages.FirstOrDefault(m => m.Id == id);
+            if (toRemove != null) Messages.Remove(toRemove);
+        };
+    }
 
     [ObservableProperty] private bool _isLoading;
     [ObservableProperty] private string? _errorMessage;
@@ -56,6 +79,31 @@ public partial class ChatViewModel : ObservableObject
         }
         catch (Exception ex) { ErrorMessage = ex.Message; }
         finally { IsLoading = false; }
+    }
+
+    [ObservableProperty] private bool _hasMoreMessages = true;
+
+    [RelayCommand]
+    public async Task LoadOlderMessagesAsync()
+    {
+        if (!HasMoreMessages || Messages.Count == 0) return;
+
+        ErrorMessage = null;
+        try
+        {
+            var oldest = Messages.First().SentAt;
+            var older = await _api.GetChatMessagesAsync(CurrentChannel + $"&before={oldest:O}", 50);
+            if (older != null && older.Count > 0)
+            {
+                for (int i = older.Count - 1; i >= 0; i--)
+                    Messages.Insert(0, older[i]);
+            }
+            else
+            {
+                HasMoreMessages = false;
+            }
+        }
+        catch (Exception ex) { ErrorMessage = ex.Message; }
     }
 
     [RelayCommand]

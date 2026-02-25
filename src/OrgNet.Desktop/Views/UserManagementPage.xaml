@@ -6,7 +6,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <Grid Padding="24" RowSpacing="16">
+    <Grid Padding="32,24,32,24" RowSpacing="16">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -15,9 +15,12 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="12">
-            <FontIcon Glyph="&#xE716;" FontSize="28"/>
-            <TextBlock Text="User Management" FontSize="24" FontWeight="SemiBold" VerticalAlignment="Center"/>
+        <StackPanel Grid.Row="0" Spacing="4">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+                <FontIcon Glyph="&#xE716;" FontSize="22" Foreground="{StaticResource PrimaryBrush}"/>
+                <TextBlock Text="User Management" Style="{StaticResource PageHeaderText}" VerticalAlignment="Center"/>
+            </StackPanel>
+            <TextBlock Text="Manage members and invitations" Style="{StaticResource PageSubHeaderText}"/>
         </StackPanel>
 
         <StackPanel Grid.Row="1" Spacing="8">

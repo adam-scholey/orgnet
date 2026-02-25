@@ -6,18 +6,23 @@
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
     Loaded="OnLoaded">
 
-    <ScrollViewer Padding="24">
-        <StackPanel Spacing="16">
-            <StackPanel Orientation="Horizontal" Spacing="12">
-                <SymbolIcon Symbol="AllApps"/>
-                <TextBlock Text="Modules" FontSize="28" FontWeight="Bold" VerticalAlignment="Center"/>
+    <ScrollViewer Padding="32,24,32,24">
+        <StackPanel Spacing="20">
+            <StackPanel Spacing="4">
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                    <FontIcon Glyph="&#xE74C;" FontSize="22" Foreground="{StaticResource PrimaryBrush}"/>
+                    <TextBlock Text="Modules" Style="{StaticResource PageHeaderText}" VerticalAlignment="Center"/>
+                </StackPanel>
+                <TextBlock Text="Built-in modules that power your organisation" Style="{StaticResource PageSubHeaderText}" MaxWidth="700"/>
             </StackPanel>
-            <TextBlock Text="These are the built-in modules that power your organisation. Each module provides a specific capability — from messaging and file storage to task management and audit logging." Opacity="0.6" TextWrapping="Wrap" MaxWidth="700"/>
 
             <InfoBar x:Name="ErrorBar" Severity="Error" Title="Error" IsOpen="False" IsClosable="True"/>
             <ProgressBar x:Name="LoadingBar" IsIndeterminate="True" Visibility="Collapsed"/>
 
             <TextBlock x:Name="ModuleCountText" Opacity="0.5" FontSize="13"/>
+
+            <!-- Empty state -->
+            <TextBlock x:Name="EmptyText" Text="No modules found" Opacity="0.4" HorizontalAlignment="Center" Margin="0,40,0,0" Visibility="Collapsed"/>
 
             <ItemsRepeater x:Name="ModulesList">
                 <ItemsRepeater.Layout>
@@ -25,7 +30,7 @@
                 </ItemsRepeater.Layout>
                 <ItemsRepeater.ItemTemplate>
                     <DataTemplate>
-                        <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" CornerRadius="8" Padding="20">
+                        <Border Style="{StaticResource CardBorder}">
                             <Grid ColumnSpacing="16">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
@@ -43,8 +48,8 @@
                                     </StackPanel>
                                 </StackPanel>
                                 <Border Grid.Column="1" CornerRadius="4" Padding="12,6" VerticalAlignment="Center"
-                                        Background="#1A4CAF50">
-                                    <TextBlock Text="{Binding Status}" FontWeight="SemiBold" FontSize="12" Foreground="LimeGreen"/>
+                                        Background="#1A22C55E">
+                                    <TextBlock Text="{Binding Status}" FontWeight="SemiBold" FontSize="12" Foreground="{StaticResource SuccessBrush}"/>
                                 </Border>
                             </Grid>
                         </Border>

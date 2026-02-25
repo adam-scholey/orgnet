@@ -28,6 +28,9 @@ public record TaskBoardSummary(int Todo, int InProgress, int Review, int Done, i
 public record AnnouncementDto(Guid Id, string Title, string Body, bool IsPinned, string Author, DateTime PublishedAt, DateTime? ExpiresAt);
 public record CreateAnnouncementRequest(string Title, string Body, bool IsPinned = false, DateTime? ExpiresAt = null);
 
+// ── Dashboard Stats (#14) ──
+public record DashboardStatsDto(int TotalMembers, int TotalTasks, int TasksDone, int TotalFiles, int TotalNotes, int TotalAnnouncements, int TotalAppointments, int ActiveChats);
+
 // ── Appointments ──
 public record AppointmentDto(Guid Id, string Title, string? Description, string? Location, DateTime StartsAt, DateTime EndsAt, bool IsCancelled, string CreatedBy, string? AssignedTo, Guid? AssignedToUserId, DateTime CreatedAt);
 public record CreateAppointmentRequest(string Title, string? Description, string? Location, DateTime StartsAt, DateTime EndsAt, Guid? AssignedToUserId = null);
