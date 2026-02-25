@@ -35,6 +35,8 @@ public class OrgNetDbContext : DbContext
     public DbSet<TaskItem> TaskItems => Set<TaskItem>();
     public DbSet<Announcement> Announcements => Set<Announcement>();
     public DbSet<Invitation> Invitations => Set<Invitation>();
+    public DbSet<Appointment> Appointments => Set<Appointment>();
+    public DbSet<UserModuleAccess> UserModuleAccess => Set<UserModuleAccess>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -169,6 +171,33 @@ public class OrgNetDbContext : DbContext
             e.HasOne(a => a.Author).WithMany().HasForeignKey(a => a.AuthorId).OnDelete(DeleteBehavior.Restrict);
             e.HasOne(a => a.Tenant).WithMany().HasForeignKey(a => a.TenantId).OnDelete(DeleteBehavior.Cascade);
             e.HasQueryFilter(a => a.TenantId == _tenantContext.TenantId);
+        });
+
+        // ── Appointment (tenant-scoped, calendar with concurrency) ──
+        modelBuilder.Entity<Appointment>(e =>
+        {
+            e.HasKey(a => a.Id);
+            e.Property(a => a.Title).HasMaxLength(300).IsRequired();
+            e.Property(a => a.Description).HasMaxLength(2000);
+            e.Property(a => a.Location).HasMaxLength(300);
+            e.Property(a => a.RowVersion).IsRowVersion();
+            e.HasIndex(a => new { a.TenantId, a.StartsAt, a.EndsAt });
+            e.HasOne(a => a.CreatedBy).WithMany().HasForeignKey(a => a.CreatedByUserId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(a => a.AssignedTo).WithMany().HasForeignKey(a => a.AssignedToUserId).OnDelete(DeleteBehavior.SetNull);
+            e.HasOne(a => a.Tenant).WithMany().HasForeignKey(a => a.TenantId).OnDelete(DeleteBehavior.Cascade);
+            e.HasQueryFilter(a => a.TenantId == _tenantContext.TenantId);
+        });
+
+        // ── UserModuleAccess (tenant-scoped, per-user module permissions) ──
+        modelBuilder.Entity<UserModuleAccess>(e =>
+        {
+            e.HasKey(u => u.Id);
+            e.HasIndex(u => new { u.TenantId, u.UserId, u.ModuleId }).IsUnique();
+            e.Property(u => u.ModuleId).HasMaxLength(200).IsRequired();
+            e.HasOne(u => u.User).WithMany().HasForeignKey(u => u.UserId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne(u => u.GrantedBy).WithMany().HasForeignKey(u => u.GrantedByUserId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(u => u.Tenant).WithMany().HasForeignKey(u => u.TenantId).OnDelete(DeleteBehavior.Cascade);
+            e.HasQueryFilter(u => u.TenantId == _tenantContext.TenantId);
         });
 
         // ── Invitation (tenant-scoped, pending user invites) ──

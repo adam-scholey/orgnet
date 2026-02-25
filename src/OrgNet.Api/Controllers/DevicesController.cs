@@ -37,7 +37,8 @@ public class DevicesController : ControllerBase
         if (string.IsNullOrWhiteSpace(request.DeviceName) || string.IsNullOrWhiteSpace(request.Fingerprint))
             return BadRequest(new { error = "Device name and fingerprint required" });
 
-        var device = await _deviceService.RegisterDeviceAsync(GetUserId(), request);
+        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+        var device = await _deviceService.RegisterDeviceAsync(GetUserId(), request, ipAddress);
 
         await _auditService.LogAsync(GetUserId(), GetUsername(), AuditAction.DeviceRegistered,
             "Device", device.Id.ToString(), $"Registered device: {request.DeviceName}",
@@ -59,7 +60,7 @@ public class DevicesController : ControllerBase
     [Authorize(Roles = "Owner,Admin")]
     public async Task<ActionResult> RevokeDevice(Guid deviceId)
     {
-        var result = await _deviceService.RevokeDeviceAsync(deviceId);
+        var result = await _deviceService.RevokeDeviceAsync(deviceId, "Admin revoked");
         if (!result) return NotFound();
 
         await _auditService.LogAsync(GetUserId(), GetUsername(), AuditAction.DeviceRevoked,

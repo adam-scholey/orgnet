@@ -29,8 +29,8 @@
                                 <StackPanel Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
                                     <SymbolIcon Symbol="Globe" />
                                     <TextBlock Text="{Binding Name}" FontWeight="SemiBold" HorizontalAlignment="Center"/>
-                                    <TextBlock Text="{Binding Endpoint}" Opacity="0.4" FontSize="11"
-                                               HorizontalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                    <TextBlock Text="{Binding Mode}" Opacity="0.4" FontSize="11"
+                                               HorizontalAlignment="Center"/>
                                 </StackPanel>
                             </Border>
                         </DataTemplate>

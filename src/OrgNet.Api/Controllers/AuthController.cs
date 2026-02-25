@@ -1,6 +1,8 @@
 using System.Security.Claims;
+using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using OrgNet.Infrastructure.Auth;
 using OrgNet.Infrastructure.Services;
 using OrgNet.Shared.Constants;
@@ -12,6 +14,7 @@ namespace OrgNet.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[EnableRateLimiting("AuthEndpoints")]
 public class AuthController : ControllerBase
 {
     private readonly AuthService _authService;

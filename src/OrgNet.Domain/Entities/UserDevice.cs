@@ -18,6 +18,9 @@ public class UserDevice
     public DateTime RegisteredAt { get; set; } = DateTime.UtcNow;
     public DateTime? LastSeenAt { get; set; }
     public DateTime? TrustedAt { get; set; }
+    public string? LastIpAddress { get; set; }
+    public int RiskScore { get; set; } = 0;
+    public string? RevokedReason { get; set; }
 
     // Navigation
     public User User { get; set; } = null!;

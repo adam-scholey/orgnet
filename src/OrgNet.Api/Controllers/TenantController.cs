@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using OrgNet.Infrastructure.Data;
 using OrgNet.Shared.Constants;
@@ -64,6 +65,7 @@ public class TenantController : ControllerBase
 
     [HttpPost("invite")]
     [Authorize(Roles = "Owner,Admin")]
+    [EnableRateLimiting("InviteCreation")]
     public async Task<ActionResult<InviteResponse>> InviteUser([FromBody] InviteUserRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.Email) || !request.Email.Contains('@'))
@@ -127,5 +129,19 @@ public class TenantController : ControllerBase
             .ToListAsync();
 
         return Ok(invitations);
+    }
+
+    [HttpDelete("invitations/{id}")]
+    [Authorize(Roles = "Owner,Admin")]
+    public async Task<ActionResult> RevokeInvitation(Guid id)
+    {
+        var invite = await _db.Invitations.FindAsync(id);
+        if (invite == null) return NotFound();
+        if (invite.AcceptedAt.HasValue)
+            return BadRequest(new { error = "Cannot revoke an accepted invitation" });
+
+        _db.Invitations.Remove(invite);
+        await _db.SaveChangesAsync();
+        return Ok(new { message = "Invitation revoked" });
     }
 }

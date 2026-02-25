@@ -21,7 +21,7 @@ public record UpdateTenantRequest(string? Name, string? Plan);
 
 // Devices
 public record RegisterDeviceRequest(string DeviceName, string Fingerprint, string Platform);
-public record DeviceDto(Guid Id, string DeviceName, string Platform, string TrustLevel, DateTime RegisteredAt, DateTime? LastSeenAt);
+public record DeviceDto(Guid Id, string DeviceName, string Platform, string TrustLevel, DateTime RegisteredAt, DateTime? LastSeenAt, string? LastIpAddress = null, int RiskScore = 0);
 
 // Modules
 public record ModuleInfoDto(string ModuleId, string Name, string Description, string Version, string Status, string? IconUrl);
@@ -33,6 +33,17 @@ public record ServiceEntryDto(string ServiceId, string Name, string Endpoint, st
 // Audit
 public record AuditLogDto(Guid Id, string Username, string Action, string EntityType, string? EntityId, string? Details, string? IpAddress, DateTime Timestamp);
 public record AuditPageResult(List<AuditLogDto> Items, int TotalCount, int Page, int PageSize);
+
+// Admin Dashboard
+public record AdminDashboardSummary(
+    int TotalUsers, int RecentLogins, int RecentActions, int TotalFiles,
+    int TotalMessages24h, int TotalTasks, int ActiveTasks, int UpcomingAppointments,
+    int TrustedDevices, int PendingDevices, List<ActivityUserSummary> TopUsers);
+public record ActivityUserSummary(string Username, int ActionCount);
+
+// Per-User Module Access
+public record UserModuleAccessDto(Guid Id, Guid UserId, string UserDisplayName, string ModuleId, bool IsGranted, string GrantedBy, DateTime GrantedAt);
+public record SetUserModuleAccessRequest(Guid UserId, string ModuleId, bool IsGranted);
 
 // SignalR Events
 public record TenantEventDto(string EventType, string Source, object? Payload, DateTime Timestamp);

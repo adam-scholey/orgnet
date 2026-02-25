@@ -44,10 +44,22 @@ public class ChatController : ControllerBase
     }
 
     [HttpGet("messages/{channel}")]
-    public async Task<ActionResult<List<ChatMessageDto>>> GetMessages(string channel, [FromQuery] int take = 50)
+    public async Task<ActionResult<List<ChatMessageDto>>> GetMessages(
+        string channel,
+        [FromQuery] int take = 50,
+        [FromQuery] DateTime? before = null,
+        [FromQuery] DateTime? after = null)
     {
-        var messages = await _db.ChatMessages
-            .Where(m => m.Channel == channel && !m.IsDeleted)
+        var query = _db.ChatMessages
+            .Where(m => m.Channel == channel && !m.IsDeleted);
+
+        // Cursor-based pagination
+        if (before.HasValue)
+            query = query.Where(m => m.SentAt < before.Value);
+        if (after.HasValue)
+            query = query.Where(m => m.SentAt > after.Value);
+
+        var messages = await query
             .Include(m => m.Sender)
             .OrderByDescending(m => m.SentAt)
             .Take(take)
@@ -55,6 +67,21 @@ public class ChatController : ControllerBase
             .ToListAsync();
 
         messages.Reverse();
+        return Ok(messages);
+    }
+
+    /// <summary>Get all messages across all channels since a timestamp — used for reconnection sync</summary>
+    [HttpGet("messages/since")]
+    public async Task<ActionResult<List<ChatMessageDto>>> GetMessagesSince([FromQuery] DateTime since, [FromQuery] int take = 200)
+    {
+        var messages = await _db.ChatMessages
+            .Where(m => m.SentAt > since && !m.IsDeleted)
+            .Include(m => m.Sender)
+            .OrderBy(m => m.SentAt)
+            .Take(take)
+            .Select(m => new ChatMessageDto(m.Id, m.Sender.DisplayName, m.SenderId, m.Channel, m.Content, m.SentAt, m.EditedAt))
+            .ToListAsync();
+
         return Ok(messages);
     }
 
@@ -89,6 +116,33 @@ public class ChatController : ControllerBase
         return Ok(dto);
     }
 
+    /// <summary>Edit a message — only the sender can edit their own messages</summary>
+    [HttpPut("{id}")]
+    public async Task<ActionResult<ChatMessageDto>> EditMessage(Guid id, [FromBody] EditMessageRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Content))
+            return BadRequest(new { error = "Content is required" });
+
+        var message = await _db.ChatMessages.Include(m => m.Sender).FirstOrDefaultAsync(m => m.Id == id);
+        if (message == null) return NotFound();
+
+        var userId = GetUserId();
+        if (message.SenderId != userId)
+            return Forbid();
+
+        message.Content = request.Content.Trim();
+        message.EditedAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync();
+
+        var dto = new ChatMessageDto(message.Id, message.Sender.DisplayName, userId, message.Channel, message.Content, message.SentAt, message.EditedAt);
+
+        await _hub.Clients
+            .Group(OrgNetConstants.SignalRGroups.TenantGroup(_tenantContext.TenantId))
+            .SendAsync("ChatMessageEdited", dto);
+
+        return Ok(dto);
+    }
+
     [HttpDelete("{id}")]
     public async Task<ActionResult> Delete(Guid id)
     {
@@ -102,6 +156,11 @@ public class ChatController : ControllerBase
 
         message.IsDeleted = true;
         await _db.SaveChangesAsync();
+
+        await _hub.Clients
+            .Group(OrgNetConstants.SignalRGroups.TenantGroup(_tenantContext.TenantId))
+            .SendAsync("ChatMessageDeleted", new { Id = id, Channel = message.Channel });
+
         return Ok(new { message = "Message deleted" });
     }
 

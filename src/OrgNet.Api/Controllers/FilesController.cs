@@ -3,7 +3,10 @@ using System.Security.Cryptography;
 using System.Text;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using OrgNet.Api.Hubs;
 using OrgNet.Domain.Entities;
 using OrgNet.Infrastructure.Data;
 using OrgNet.Shared.Constants;
@@ -19,11 +22,24 @@ public class FilesController : ControllerBase
 {
     private readonly OrgNetDbContext _db;
     private readonly ITenantContext _tenantContext;
+    private readonly IHubContext<OrgNetHub> _hub;
+    private const long MaxFileSizeBytes = 50 * 1024 * 1024; // 50 MB
 
-    public FilesController(OrgNetDbContext db, ITenantContext tenantContext)
+    private static readonly HashSet<string> AllowedExtensions = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx",
+        ".png", ".jpg", ".jpeg", ".gif", ".bmp", ".svg", ".webp",
+        ".txt", ".csv", ".json", ".xml", ".md",
+        ".zip", ".7z", ".tar", ".gz",
+        ".mp4", ".mp3", ".wav",
+        ".html", ".css", ".js", ".ts", ".cs", ".py", ".java"
+    };
+
+    public FilesController(OrgNetDbContext db, ITenantContext tenantContext, IHubContext<OrgNetHub> hub)
     {
         _db = db;
         _tenantContext = tenantContext;
+        _hub = hub;
     }
 
     [HttpGet]
@@ -39,6 +55,7 @@ public class FilesController : ControllerBase
     }
 
     [HttpPost("upload")]
+    [EnableRateLimiting("FileUploads")]
     public async Task<ActionResult<OrgFileDto>> Upload([FromBody] UploadFileRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.FileName))
@@ -48,39 +65,89 @@ public class FilesController : ControllerBase
         if (string.IsNullOrWhiteSpace(request.EncryptionPin) || request.EncryptionPin.Length < 4)
             return BadRequest(new { error = "Encryption PIN must be at least 4 characters" });
 
-        var userId = GetUserId();
-        var rawBytes = Convert.FromBase64String(request.Base64Content);
+        var ext = Path.GetExtension(request.FileName);
+        if (!AllowedExtensions.Contains(ext))
+            return BadRequest(new { error = $"File type '{ext}' is not allowed" });
 
-        // AES-256 encryption
+        byte[] rawBytes;
+        try { rawBytes = Convert.FromBase64String(request.Base64Content); }
+        catch { return BadRequest(new { error = "Invalid base64 content" }); }
+
+        if (rawBytes.Length > MaxFileSizeBytes)
+            return BadRequest(new { error = $"File exceeds maximum size of {MaxFileSizeBytes / (1024 * 1024)}MB" });
+
+        var userId = GetUserId();
+        var dto = await EncryptAndSaveFile(userId, request.FileName, rawBytes, request.EncryptionPin, request.IsShared);
+        return Ok(dto);
+    }
+
+    /// <summary>Multipart form upload — preferred for large files. Streams directly without base64 overhead.</summary>
+    [HttpPost("upload-multipart")]
+    [EnableRateLimiting("FileUploads")]
+    [RequestSizeLimit(55_000_000)] // slightly above MaxFileSizeBytes to account for multipart overhead
+    public async Task<ActionResult<OrgFileDto>> UploadMultipart(
+        [FromForm] IFormFile file,
+        [FromForm] string encryptionPin,
+        [FromForm] bool isShared = false)
+    {
+        if (file == null || file.Length == 0)
+            return BadRequest(new { error = "File is required" });
+        if (string.IsNullOrWhiteSpace(encryptionPin) || encryptionPin.Length < 4)
+            return BadRequest(new { error = "Encryption PIN must be at least 4 characters" });
+        if (file.Length > MaxFileSizeBytes)
+            return BadRequest(new { error = $"File exceeds maximum size of {MaxFileSizeBytes / (1024 * 1024)}MB" });
+
+        var ext = Path.GetExtension(file.FileName);
+        if (!AllowedExtensions.Contains(ext))
+            return BadRequest(new { error = $"File type '{ext}' is not allowed" });
+
+        var userId = GetUserId();
+        using var ms = new MemoryStream();
+        await file.CopyToAsync(ms);
+        var rawBytes = ms.ToArray();
+
+        var dto = await EncryptAndSaveFile(userId, file.FileName, rawBytes, encryptionPin, isShared);
+        return Ok(dto);
+    }
+
+    private async Task<OrgFileDto> EncryptAndSaveFile(Guid userId, string fileName, byte[] rawBytes, string pin, bool isShared)
+    {
         using var aes = Aes.Create();
         aes.KeySize = 256;
-        aes.Key = DeriveKey(request.EncryptionPin);
+        aes.Key = DeriveKey(pin);
         aes.GenerateIV();
 
-        using var ms = new MemoryStream();
-        using (var cs = new CryptoStream(ms, aes.CreateEncryptor(), CryptoStreamMode.Write))
+        using var encStream = new MemoryStream();
+        using (var cs = new CryptoStream(encStream, aes.CreateEncryptor(), CryptoStreamMode.Write))
         {
             await cs.WriteAsync(rawBytes);
             await cs.FlushFinalBlockAsync();
         }
 
-        var file = new OrgFile
+        var orgFile = new OrgFile
         {
             TenantId = _tenantContext.TenantId,
             UploadedByUserId = userId,
-            FileName = request.FileName,
-            ContentType = GuessContentType(request.FileName),
+            FileName = fileName,
+            ContentType = GuessContentType(fileName),
             FileSize = rawBytes.Length,
-            EncryptedContent = ms.ToArray(),
+            EncryptedContent = encStream.ToArray(),
             IV = aes.IV,
-            IsShared = request.IsShared
+            IsShared = isShared
         };
 
-        _db.OrgFiles.Add(file);
+        _db.OrgFiles.Add(orgFile);
         await _db.SaveChangesAsync();
 
         var user = await _db.Users.FindAsync(userId);
-        return Ok(new OrgFileDto(file.Id, file.FileName, file.ContentType, file.FileSize, file.IsShared, user?.DisplayName ?? "", file.UploadedAt));
+        var dto = new OrgFileDto(orgFile.Id, orgFile.FileName, orgFile.ContentType, orgFile.FileSize, orgFile.IsShared, user?.DisplayName ?? "", orgFile.UploadedAt);
+
+        // Broadcast file upload event to tenant
+        await _hub.Clients
+            .Group(OrgNetConstants.SignalRGroups.TenantGroup(_tenantContext.TenantId))
+            .SendAsync("FileUploaded", dto);
+
+        return dto;
     }
 
     [HttpPost("download")]

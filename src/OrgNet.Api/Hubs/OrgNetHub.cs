@@ -67,6 +67,18 @@ public class OrgNetHub : Hub
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"tenant-{tenantId}:module-{moduleId}");
     }
 
+    /// <summary>Broadcast typing indicator to channel members</summary>
+    public async Task SendTypingIndicator(string channel)
+    {
+        var tenantId = GetTenantId();
+        var displayName = Context.User?.Identity?.Name ?? "Unknown";
+        if (tenantId != Guid.Empty)
+        {
+            await Clients.OthersInGroup(OrgNetConstants.SignalRGroups.TenantGroup(tenantId))
+                .SendAsync("UserTyping", new { Channel = channel, UserName = displayName, Timestamp = DateTime.UtcNow });
+        }
+    }
+
     /// <summary>Broadcast an event to all users in the same tenant</summary>
     public async Task SendTenantEvent(string eventType, object payload)
     {

@@ -10,6 +10,7 @@ public record DownloadFileRequest(Guid FileId, string EncryptionPin);
 // ── Chat / Messaging ──
 public record ChatMessageDto(Guid Id, string SenderName, Guid SenderId, string Channel, string Content, DateTime SentAt, DateTime? EditedAt);
 public record SendMessageRequest(string Channel, string Content);
+public record EditMessageRequest(string Content);
 public record ChatChannelDto(string Name, int MessageCount, DateTime? LastMessageAt);
 
 // ── Collaboration Notes ──
@@ -26,3 +27,8 @@ public record TaskBoardSummary(int Todo, int InProgress, int Review, int Done, i
 // ── Announcements ──
 public record AnnouncementDto(Guid Id, string Title, string Body, bool IsPinned, string Author, DateTime PublishedAt, DateTime? ExpiresAt);
 public record CreateAnnouncementRequest(string Title, string Body, bool IsPinned = false, DateTime? ExpiresAt = null);
+
+// ── Appointments ──
+public record AppointmentDto(Guid Id, string Title, string? Description, string? Location, DateTime StartsAt, DateTime EndsAt, bool IsCancelled, string CreatedBy, string? AssignedTo, Guid? AssignedToUserId, DateTime CreatedAt);
+public record CreateAppointmentRequest(string Title, string? Description, string? Location, DateTime StartsAt, DateTime EndsAt, Guid? AssignedToUserId = null);
+public record UpdateAppointmentRequest(string? Title, string? Description, string? Location, DateTime? StartsAt, DateTime? EndsAt, Guid? AssignedToUserId);
