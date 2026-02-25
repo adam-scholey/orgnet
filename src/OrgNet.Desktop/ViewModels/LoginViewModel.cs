@@ -25,6 +25,7 @@ public partial class LoginViewModel : ObservableObject
     [ObservableProperty] private string _password = string.Empty;
     [ObservableProperty] private string _organisationName = string.Empty;
     [ObservableProperty] private string _displayName = string.Empty;
+    [ObservableProperty] private string _sector = "Other";
     [ObservableProperty] private string _inviteToken = string.Empty;
     [ObservableProperty] private string? _errorMessage;
     [ObservableProperty] private bool _isLoading;
@@ -88,7 +89,7 @@ public partial class LoginViewModel : ObservableObject
         try
         {
             var result = await _api.RegisterOrganisationAsync(
-                new RegisterOrganisationRequest(OrganisationName, DisplayName, Email, Password));
+                new RegisterOrganisationRequest(OrganisationName, DisplayName, Email, Password, Sector));
 
             if (result is { Success: true })
             {

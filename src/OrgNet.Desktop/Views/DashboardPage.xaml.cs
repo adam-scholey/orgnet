@@ -19,6 +19,7 @@ public sealed partial class DashboardPage : Page
             {
                 if (args.PropertyName == nameof(_vm.TenantName)) TenantNameText.Text = _vm.TenantName;
                 if (args.PropertyName == nameof(_vm.TenantPlan)) PlanText.Text = _vm.TenantPlan;
+                if (args.PropertyName == nameof(_vm.TenantSector)) SectorText.Text = _vm.TenantSector;
                 if (args.PropertyName == nameof(_vm.MemberCount)) MemberCountText.Text = _vm.MemberCount.ToString();
                 if (args.PropertyName == nameof(_vm.IsLoading)) LoadingBar.Visibility = _vm.IsLoading ? Visibility.Visible : Visibility.Collapsed;
             });

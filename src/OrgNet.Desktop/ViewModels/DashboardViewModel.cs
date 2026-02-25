@@ -27,6 +27,7 @@ public partial class DashboardViewModel : ObservableObject
 
     [ObservableProperty] private string _tenantName = "Loading...";
     [ObservableProperty] private string _tenantPlan = "";
+    [ObservableProperty] private string _tenantSector = "";
     [ObservableProperty] private int _memberCount;
     [ObservableProperty] private bool _isLoading;
 
@@ -49,10 +50,12 @@ public partial class DashboardViewModel : ObservableObject
             {
                 TenantName = tenant.Name;
                 TenantPlan = tenant.Plan;
+                TenantSector = tenant.Sector;
                 MemberCount = tenant.MemberCount;
 
                 await _cache.SetAsync("tenant_name", tenant.Name);
                 await _cache.SetAsync("tenant_plan", tenant.Plan);
+                await _cache.SetAsync("tenant_sector", tenant.Sector);
             }
         }
         finally

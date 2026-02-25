@@ -14,35 +14,76 @@
                 <!-- Other merged dictionaries here -->
             </ResourceDictionary.MergedDictionaries>
             <!-- Other app resources here -->
+            <!-- ── Brand Palette ── -->
             <Color x:Key="Primary">#512BD4</Color>
+            <Color x:Key="PrimaryLight">#7B5FDB</Color>
+            <Color x:Key="Accent">#0EA5E9</Color>
+            <Color x:Key="Success">#22C55E</Color>
+            <Color x:Key="Warning">#F59E0B</Color>
+            <Color x:Key="Danger">#EF4444</Color>
 
-            <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource Primary}" />
-            <SolidColorBrush x:Key="WhiteBrush" Color="White" />
-            <SolidColorBrush x:Key="BlackBrush" Color="Black" />
+            <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource Primary}"/>
+            <SolidColorBrush x:Key="PrimaryLightBrush" Color="{StaticResource PrimaryLight}"/>
+            <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource Accent}"/>
+            <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource Success}"/>
+            <SolidColorBrush x:Key="WarningBrush" Color="{StaticResource Warning}"/>
+            <SolidColorBrush x:Key="DangerBrush" Color="{StaticResource Danger}"/>
+            <SolidColorBrush x:Key="WhiteBrush" Color="White"/>
+            <SolidColorBrush x:Key="BlackBrush" Color="Black"/>
+            <SolidColorBrush x:Key="SubtleBrush" Color="#64748B"/>
 
             <x:Double x:Key="AppFontSize">14</x:Double>
 
+            <!-- ── Page Header Style ── -->
+            <Style x:Key="PageHeaderText" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="26"/>
+                <Setter Property="FontWeight" Value="SemiBold"/>
+            </Style>
+
+            <Style x:Key="PageSubHeaderText" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="13"/>
+                <Setter Property="Opacity" Value="0.55"/>
+            </Style>
+
+            <!-- ── Card Style ── -->
+            <Style x:Key="CardBorder" TargetType="Border">
+                <Setter Property="Background" Value="{ThemeResource CardBackgroundFillColorDefaultBrush}"/>
+                <Setter Property="CornerRadius" Value="8"/>
+                <Setter Property="Padding" Value="20"/>
+            </Style>
+
             <Style x:Key="MyLabel" TargetType="TextBlock">
-                <Setter Property="Foreground"
-                        Value="{StaticResource PrimaryBrush}" />
+                <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}"/>
             </Style>
 
+            <!-- ── Button Styles ── -->
             <Style x:Key="Action" TargetType="Button">
-                <Setter Property="FontSize"
-                        Value="{StaticResource AppFontSize}" />
-                <Setter Property="Padding"
-                        Value="14,10" />
+                <Setter Property="FontSize" Value="{StaticResource AppFontSize}"/>
+                <Setter Property="Padding" Value="14,10"/>
+                <Setter Property="CornerRadius" Value="6"/>
             </Style>
 
-            <Style x:Key="PrimaryAction"
-                   TargetType="Button"
-                   BasedOn="{StaticResource Action}">
-                <Setter Property="Background"
-                        Value="{StaticResource PrimaryBrush}" />
-                <Setter Property="CornerRadius"
-                        Value="8" />
-                <Setter Property="Foreground"
-                        Value="{StaticResource WhiteBrush}" />
+            <Style x:Key="PrimaryAction" TargetType="Button" BasedOn="{StaticResource Action}">
+                <Setter Property="Background" Value="{StaticResource PrimaryBrush}"/>
+                <Setter Property="CornerRadius" Value="8"/>
+                <Setter Property="Foreground" Value="{StaticResource WhiteBrush}"/>
+            </Style>
+
+            <Style x:Key="DangerAction" TargetType="Button" BasedOn="{StaticResource Action}">
+                <Setter Property="Background" Value="{StaticResource DangerBrush}"/>
+                <Setter Property="CornerRadius" Value="8"/>
+                <Setter Property="Foreground" Value="{StaticResource WhiteBrush}"/>
+            </Style>
+
+            <!-- ── Stat Card KPI Style ── -->
+            <Style x:Key="KpiValue" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="28"/>
+                <Setter Property="FontWeight" Value="Bold"/>
+            </Style>
+
+            <Style x:Key="KpiLabel" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="12"/>
+                <Setter Property="Opacity" Value="0.55"/>
             </Style>
         </ResourceDictionary>
     </Application.Resources>

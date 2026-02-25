@@ -19,6 +19,21 @@
                 <!-- Register-only fields -->
                 <TextBox x:Name="OrgNameBox" Header="Organisation Name" Visibility="Collapsed"/>
                 <TextBox x:Name="DisplayNameBox" Header="Display Name" Visibility="Collapsed"/>
+                <ComboBox x:Name="SectorCombo" Header="Industry Sector" Visibility="Collapsed"
+                          HorizontalAlignment="Stretch" SelectedIndex="11">
+                    <ComboBoxItem Content="Technology" Tag="Technology"/>
+                    <ComboBoxItem Content="Healthcare" Tag="Healthcare"/>
+                    <ComboBoxItem Content="Education" Tag="Education"/>
+                    <ComboBoxItem Content="Finance" Tag="Finance"/>
+                    <ComboBoxItem Content="Manufacturing" Tag="Manufacturing"/>
+                    <ComboBoxItem Content="Retail" Tag="Retail"/>
+                    <ComboBoxItem Content="Legal" Tag="Legal"/>
+                    <ComboBoxItem Content="Construction" Tag="Construction"/>
+                    <ComboBoxItem Content="Hospitality" Tag="Hospitality"/>
+                    <ComboBoxItem Content="Non-Profit" Tag="NonProfit"/>
+                    <ComboBoxItem Content="Government" Tag="Government"/>
+                    <ComboBoxItem Content="Other" Tag="Other"/>
+                </ComboBox>
 
                 <!-- Shared fields -->
                 <TextBox x:Name="EmailBox" Header="Email" PlaceholderText="you@company.com"/>

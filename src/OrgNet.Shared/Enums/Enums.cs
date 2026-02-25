@@ -47,6 +47,22 @@ public enum TaskItemPriority
     Critical = 3
 }
 
+public enum OrganisationSector
+{
+    Technology = 0,
+    Healthcare = 1,
+    Education = 2,
+    Finance = 3,
+    Manufacturing = 4,
+    Retail = 5,
+    Legal = 6,
+    Construction = 7,
+    Hospitality = 8,
+    NonProfit = 9,
+    Government = 10,
+    Other = 99
+}
+
 public enum AuditAction
 {
     Login,

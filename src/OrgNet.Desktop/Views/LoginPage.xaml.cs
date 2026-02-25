@@ -32,6 +32,7 @@ public sealed partial class LoginPage : Page
             {
                 _vm.OrganisationName = OrgNameBox.Text;
                 _vm.DisplayName = DisplayNameBox.Text;
+                _vm.Sector = (SectorCombo.SelectedItem as Microsoft.UI.Xaml.Controls.ComboBoxItem)?.Tag?.ToString() ?? "Other";
                 await _vm.RegisterCommand.ExecuteAsync(null);
             }
             else
@@ -61,6 +62,7 @@ public sealed partial class LoginPage : Page
 
         OrgNameBox.Visibility = _isRegisterMode ? Visibility.Visible : Visibility.Collapsed;
         DisplayNameBox.Visibility = _isRegisterMode ? Visibility.Visible : Visibility.Collapsed;
+        SectorCombo.Visibility = _isRegisterMode ? Visibility.Visible : Visibility.Collapsed;
 
         ActionButton.Content = _isRegisterMode ? "Create Organisation" : "Sign In";
         ToggleLink.Content = _isRegisterMode ? "Already have an account? Sign in" : "Create a new organisation";
@@ -98,6 +100,7 @@ public sealed partial class LoginPage : Page
 
         OrgNameBox.Visibility = Visibility.Collapsed;
         DisplayNameBox.Visibility = Visibility.Collapsed;
+        SectorCombo.Visibility = Visibility.Collapsed;
     }
 
     private async void OnLookupClicked(object sender, RoutedEventArgs e)

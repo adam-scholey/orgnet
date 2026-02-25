@@ -2,7 +2,7 @@ namespace OrgNet.Shared.DTOs;
 
 // Auth
 public record LoginRequest(string Email, string Password, string? DeviceFingerprint = null);
-public record RegisterOrganisationRequest(string OrganisationName, string AdminDisplayName, string Email, string Password);
+public record RegisterOrganisationRequest(string OrganisationName, string AdminDisplayName, string Email, string Password, string Sector = "Other");
 public record AuthResponse(bool Success, string AccessToken, string RefreshToken, string DisplayName, string Role, Guid TenantId, string? Error = null);
 public record RefreshTokenRequest(string RefreshToken);
 public record TokenPair(string AccessToken, string RefreshToken);
@@ -16,8 +16,8 @@ public record AcceptInviteRequest(string Token, string DisplayName, string Passw
 public record InvitationInfoDto(Guid Id, string Email, string Role, string OrganisationName, string InvitedBy, DateTime ExpiresAt, bool IsAccepted, bool IsExpired);
 
 // Tenant
-public record TenantInfoDto(Guid Id, string Name, string Slug, string Plan, int MemberCount, DateTime CreatedAt);
-public record UpdateTenantRequest(string? Name, string? Plan);
+public record TenantInfoDto(Guid Id, string Name, string Slug, string Plan, string Sector, int MemberCount, DateTime CreatedAt);
+public record UpdateTenantRequest(string? Name, string? Plan, string? Sector);
 
 // Devices
 public record RegisterDeviceRequest(string DeviceName, string Fingerprint, string Platform);

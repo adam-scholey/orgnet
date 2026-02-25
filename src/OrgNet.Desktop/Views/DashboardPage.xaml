@@ -6,50 +6,84 @@
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
     Loaded="OnLoaded">
 
-    <ScrollViewer Padding="24">
-        <StackPanel Spacing="20">
-            <TextBlock Text="Dashboard" FontSize="28" FontWeight="Bold"/>
-
-            <!-- Tenant Info Cards -->
-            <StackPanel Orientation="Horizontal" Spacing="16">
-                <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" CornerRadius="8" Padding="20" MinWidth="180">
-                    <StackPanel>
-                        <TextBlock Text="Organisation" FontSize="12" Opacity="0.6"/>
-                        <TextBlock x:Name="TenantNameText" Text="—" FontSize="20" FontWeight="SemiBold"/>
-                    </StackPanel>
-                </Border>
-                <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" CornerRadius="8" Padding="20" MinWidth="180">
-                    <StackPanel>
-                        <TextBlock Text="Plan" FontSize="12" Opacity="0.6"/>
-                        <TextBlock x:Name="PlanText" Text="—" FontSize="20" FontWeight="SemiBold"/>
-                    </StackPanel>
-                </Border>
-                <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" CornerRadius="8" Padding="20" MinWidth="180">
-                    <StackPanel>
-                        <TextBlock Text="Members" FontSize="12" Opacity="0.6"/>
-                        <TextBlock x:Name="MemberCountText" Text="0" FontSize="20" FontWeight="SemiBold"/>
-                    </StackPanel>
-                </Border>
+    <ScrollViewer Padding="32,24,32,24">
+        <StackPanel Spacing="24">
+            <!-- Page Header -->
+            <StackPanel Spacing="4">
+                <TextBlock Text="Dashboard" Style="{StaticResource PageHeaderText}"/>
+                <TextBlock x:Name="WelcomeText" Text="Welcome back" Style="{StaticResource PageSubHeaderText}"/>
             </StackPanel>
 
             <ProgressBar x:Name="LoadingBar" IsIndeterminate="True" Visibility="Collapsed"/>
 
+            <!-- KPI Cards Row -->
+            <StackPanel Orientation="Horizontal" Spacing="16">
+                <Border Style="{StaticResource CardBorder}" MinWidth="180">
+                    <StackPanel Spacing="4">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <FontIcon Glyph="&#xE770;" FontSize="16" Foreground="{StaticResource PrimaryBrush}"/>
+                            <TextBlock Text="Organisation" Style="{StaticResource KpiLabel}"/>
+                        </StackPanel>
+                        <TextBlock x:Name="TenantNameText" Text="—" FontSize="20" FontWeight="SemiBold"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource CardBorder}" MinWidth="140">
+                    <StackPanel Spacing="4">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <FontIcon Glyph="&#xE716;" FontSize="16" Foreground="{StaticResource AccentBrush}"/>
+                            <TextBlock Text="Members" Style="{StaticResource KpiLabel}"/>
+                        </StackPanel>
+                        <TextBlock x:Name="MemberCountText" Text="0" Style="{StaticResource KpiValue}" Foreground="{StaticResource AccentBrush}"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource CardBorder}" MinWidth="140">
+                    <StackPanel Spacing="4">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <FontIcon Glyph="&#xE7C1;" FontSize="16" Foreground="{StaticResource SuccessBrush}"/>
+                            <TextBlock Text="Plan" Style="{StaticResource KpiLabel}"/>
+                        </StackPanel>
+                        <TextBlock x:Name="PlanText" Text="—" FontSize="18" FontWeight="SemiBold" Foreground="{StaticResource SuccessBrush}"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource CardBorder}" MinWidth="160">
+                    <StackPanel Spacing="4">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <FontIcon Glyph="&#xE821;" FontSize="16" Foreground="{StaticResource WarningBrush}"/>
+                            <TextBlock Text="Sector" Style="{StaticResource KpiLabel}"/>
+                        </StackPanel>
+                        <TextBlock x:Name="SectorText" Text="—" FontSize="18" FontWeight="SemiBold"/>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+
             <!-- Live Events -->
-            <TextBlock Text="Live Tenant Events" FontSize="18" FontWeight="SemiBold" Margin="0,8,0,0"/>
-            <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" CornerRadius="8" Padding="16" MinHeight="200">
-                <ListView x:Name="EventsList" SelectionMode="None">
-                    <ListView.ItemTemplate>
-                        <DataTemplate>
-                            <StackPanel Orientation="Horizontal" Spacing="12" Padding="4">
-                                <TextBlock Text="●" Foreground="{StaticResource PrimaryBrush}" VerticalAlignment="Center"/>
-                                <TextBlock Text="{Binding EventType}" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                                <TextBlock Text="{Binding Source}" Opacity="0.6" VerticalAlignment="Center"/>
-                                <TextBlock Text="{Binding Timestamp}" Opacity="0.4" VerticalAlignment="Center" FontSize="12"/>
-                            </StackPanel>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
-            </Border>
+            <StackPanel Spacing="12">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <FontIcon Glyph="&#xEA8F;" FontSize="18" Foreground="{StaticResource PrimaryBrush}"/>
+                    <TextBlock Text="Live Activity" FontSize="18" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                </StackPanel>
+                <Border Style="{StaticResource CardBorder}" MinHeight="200">
+                    <ListView x:Name="EventsList" SelectionMode="None">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Padding="4,8" ColumnSpacing="12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Ellipse Grid.Column="0" Width="8" Height="8" Fill="{StaticResource AccentBrush}" VerticalAlignment="Center"/>
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                                        <TextBlock Text="{Binding EventType}" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{Binding Source}" Opacity="0.5" VerticalAlignment="Center" FontSize="13"/>
+                                    </StackPanel>
+                                    <TextBlock Grid.Column="2" Text="{Binding Timestamp}" Opacity="0.35" VerticalAlignment="Center" FontSize="11"/>
+                                </Grid>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </Border>
+            </StackPanel>
         </StackPanel>
     </ScrollViewer>
 </Page>

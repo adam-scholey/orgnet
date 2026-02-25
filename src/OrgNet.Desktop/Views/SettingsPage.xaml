@@ -6,43 +6,63 @@
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
     Loaded="OnLoaded">
 
-    <ScrollViewer Padding="24">
-        <StackPanel Spacing="20" MaxWidth="600" HorizontalAlignment="Left">
-            <TextBlock Text="Settings" FontSize="28" FontWeight="Bold"/>
+    <ScrollViewer Padding="32,24,32,24">
+        <StackPanel Spacing="20" MaxWidth="640" HorizontalAlignment="Left">
+            <StackPanel Spacing="4">
+                <TextBlock Text="Settings" Style="{StaticResource PageHeaderText}"/>
+                <TextBlock Text="Organisation configuration and app preferences" Style="{StaticResource PageSubHeaderText}"/>
+            </StackPanel>
             <ProgressBar x:Name="LoadingBar" IsIndeterminate="True" Visibility="Collapsed"/>
 
-            <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" CornerRadius="8" Padding="20">
-                <StackPanel Spacing="12">
-                    <TextBlock Text="Organisation" FontSize="18" FontWeight="SemiBold"/>
+            <Border Style="{StaticResource CardBorder}">
+                <StackPanel Spacing="14">
                     <StackPanel Orientation="Horizontal" Spacing="8">
-                        <TextBlock Text="Name:" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                        <TextBlock x:Name="TenantNameText" Text="—" VerticalAlignment="Center"/>
+                        <FontIcon Glyph="&#xE770;" FontSize="18" Foreground="{StaticResource PrimaryBrush}"/>
+                        <TextBlock Text="Organisation" FontSize="18" FontWeight="SemiBold"/>
                     </StackPanel>
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <TextBlock Text="Plan:" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                        <TextBlock x:Name="PlanText" Text="—" VerticalAlignment="Center"/>
-                    </StackPanel>
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <TextBlock Text="Members:" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                        <TextBlock x:Name="MemberCountText" Text="0" VerticalAlignment="Center"/>
-                    </StackPanel>
+                    <Grid ColumnSpacing="16" RowSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="100"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Name" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Row="0" Grid.Column="1" x:Name="TenantNameText" Text="—" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Plan" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Row="1" Grid.Column="1" x:Name="PlanText" Text="—" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Sector" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Row="2" Grid.Column="1" x:Name="SectorText" Text="—" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Members" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Row="3" Grid.Column="1" x:Name="MemberCountText" Text="0" VerticalAlignment="Center"/>
+                    </Grid>
                 </StackPanel>
             </Border>
 
-            <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" CornerRadius="8" Padding="20">
+            <Border Style="{StaticResource CardBorder}">
                 <StackPanel Spacing="12">
-                    <TextBlock Text="Local Cache" FontSize="18" FontWeight="SemiBold"/>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon Glyph="&#xE74E;" FontSize="18" Foreground="{StaticResource WarningBrush}"/>
+                        <TextBlock Text="Local Cache" FontSize="18" FontWeight="SemiBold"/>
+                    </StackPanel>
                     <TextBlock Text="Clear the local SQLite cache to force a full resync from the server." Opacity="0.6" TextWrapping="Wrap"/>
-                    <Button Content="Clear Cache" Click="OnClearCache"/>
+                    <Button Content="Clear Cache" Click="OnClearCache" Style="{StaticResource Action}"/>
                     <TextBlock x:Name="StatusText" Opacity="0.6" FontSize="12"/>
                 </StackPanel>
             </Border>
 
-            <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" CornerRadius="8" Padding="20">
+            <Border Style="{StaticResource CardBorder}">
                 <StackPanel Spacing="8">
-                    <TextBlock Text="About" FontSize="18" FontWeight="SemiBold"/>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon Glyph="&#xE946;" FontSize="18" Foreground="{StaticResource SubtleBrush}"/>
+                        <TextBlock Text="About" FontSize="18" FontWeight="SemiBold"/>
+                    </StackPanel>
                     <TextBlock Text="OrgNet Desktop v1.0.0" Opacity="0.6"/>
-                    <TextBlock Text="Windows-native multi-tenant organisational digital operating system" Opacity="0.4" TextWrapping="Wrap"/>
+                    <TextBlock Text="Multi-tenant organisational digital workspace for Windows" Opacity="0.4" TextWrapping="Wrap"/>
                 </StackPanel>
             </Border>
         </StackPanel>

@@ -19,6 +19,7 @@ public partial class SettingsViewModel : ObservableObject
 
     [ObservableProperty] private string _tenantName = "";
     [ObservableProperty] private string _tenantPlan = "";
+    [ObservableProperty] private string _tenantSector = "";
     [ObservableProperty] private int _memberCount;
     [ObservableProperty] private bool _isLoading;
     [ObservableProperty] private string? _statusMessage;
@@ -34,6 +35,7 @@ public partial class SettingsViewModel : ObservableObject
             {
                 TenantName = tenant.Name;
                 TenantPlan = tenant.Plan;
+                TenantSector = tenant.Sector;
                 MemberCount = tenant.MemberCount;
             }
         }

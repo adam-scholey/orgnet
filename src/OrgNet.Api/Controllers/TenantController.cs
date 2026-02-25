@@ -31,7 +31,7 @@ public class TenantController : ControllerBase
         if (tenant == null) return NotFound();
 
         var memberCount = await _db.Users.CountAsync();
-        return Ok(new TenantInfoDto(tenant.Id, tenant.Name, tenant.Slug, tenant.Plan.ToString(), memberCount, tenant.CreatedAt));
+        return Ok(new TenantInfoDto(tenant.Id, tenant.Name, tenant.Slug, tenant.Plan.ToString(), tenant.Sector.ToString(), memberCount, tenant.CreatedAt));
     }
 
     [HttpPut]
@@ -47,10 +47,13 @@ public class TenantController : ControllerBase
         if (!string.IsNullOrWhiteSpace(request.Plan) && Enum.TryParse<OrgNet.Shared.Enums.TenantPlan>(request.Plan, out var plan))
             tenant.Plan = plan;
 
+        if (!string.IsNullOrWhiteSpace(request.Sector) && Enum.TryParse<OrgNet.Shared.Enums.OrganisationSector>(request.Sector, out var sector))
+            tenant.Sector = sector;
+
         await _db.SaveChangesAsync();
 
         var memberCount = await _db.Users.CountAsync();
-        return Ok(new TenantInfoDto(tenant.Id, tenant.Name, tenant.Slug, tenant.Plan.ToString(), memberCount, tenant.CreatedAt));
+        return Ok(new TenantInfoDto(tenant.Id, tenant.Name, tenant.Slug, tenant.Plan.ToString(), tenant.Sector.ToString(), memberCount, tenant.CreatedAt));
     }
 
     [HttpGet("members")]

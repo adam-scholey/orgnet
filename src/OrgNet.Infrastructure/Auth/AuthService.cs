@@ -36,11 +36,14 @@ public class AuthService
         if (await _db.Users.IgnoreQueryFilters().AnyAsync(u => u.Email == request.Email))
             return new AuthResponse(false, "", "", "", "", Guid.Empty, "Email already registered");
 
+        var sector = Enum.TryParse<OrganisationSector>(request.Sector, true, out var s) ? s : OrganisationSector.Other;
+
         var tenant = new Tenant
         {
             Name = request.OrganisationName,
             Slug = Slugify(request.OrganisationName),
-            Plan = TenantPlan.Free
+            Plan = TenantPlan.Free,
+            Sector = sector
         };
 
         var user = new User
@@ -54,6 +57,19 @@ public class AuthService
 
         _db.Tenants.Add(tenant);
         _db.Users.Add(user);
+
+        // Auto-allocate built-in modules based on the organisation's sector
+        var sectorModules = GetModulesForSector(sector);
+        foreach (var moduleId in sectorModules)
+        {
+            _db.TenantModules.Add(new TenantModule
+            {
+                TenantId = tenant.Id,
+                ModuleId = moduleId,
+                Status = ModuleStatus.Enabled
+            });
+        }
+
         await _db.SaveChangesAsync();
 
         var accessToken = _tokenService.GenerateAccessToken(user.Id, tenant.Id, user.DisplayName, user.Role.ToString());
@@ -272,6 +288,31 @@ public class AuthService
         await _db.SaveChangesAsync();
 
         return new AuthResponse(true, accessToken, refreshToken, user.DisplayName, user.Role.ToString(), invite.TenantId);
+    }
+
+    public static List<string> GetModulesForSector(OrganisationSector sector)
+    {
+        // Core modules every sector gets
+        var core = new List<string> { "chat", "announcements" };
+
+        var extra = sector switch
+        {
+            OrganisationSector.Technology => new[] { "tasks", "files", "notes" },
+            OrganisationSector.Healthcare => new[] { "appointments", "files", "notes" },
+            OrganisationSector.Education => new[] { "notes", "tasks" },
+            OrganisationSector.Finance => new[] { "files", "tasks", "notes" },
+            OrganisationSector.Manufacturing => new[] { "tasks", "files" },
+            OrganisationSector.Retail => new[] { "tasks" },
+            OrganisationSector.Legal => new[] { "files", "notes", "appointments" },
+            OrganisationSector.Construction => new[] { "tasks", "files" },
+            OrganisationSector.Hospitality => new[] { "appointments", "tasks" },
+            OrganisationSector.NonProfit => new[] { "notes", "tasks" },
+            OrganisationSector.Government => new[] { "files", "notes", "tasks", "appointments" },
+            _ => new[] { "tasks", "files", "notes", "appointments" },
+        };
+
+        core.AddRange(extra);
+        return core;
     }
 
     private static string Slugify(string name)
