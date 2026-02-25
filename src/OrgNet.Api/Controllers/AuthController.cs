@@ -219,7 +219,7 @@ public class AuthController : ControllerBase
                 const tk=document.getElementById('tk').value;
                 btn.disabled=true; msg.className='msg'; msg.textContent='Joining...';
                 try{
-                    const res=await fetch('/api/auth/accept-invite',{
+                    const res=await fetch('/api/auth/accept-invite?t='+encodeURIComponent(tk),{
                         method:'POST',headers:{'Content-Type':'application/json'},
                         body:JSON.stringify({token:tk,displayName:document.getElementById('name').value,password:document.getElementById('pw').value})
                     });
@@ -251,8 +251,12 @@ public class AuthController : ControllerBase
     /// Returns an AuthResponse so they are immediately logged in.
     /// </summary>
     [HttpPost("accept-invite")]
-    public async Task<ActionResult<AuthResponse>> AcceptInvite([FromBody] AcceptInviteRequest request)
+    public async Task<ActionResult<AuthResponse>> AcceptInvite([FromBody] AcceptInviteRequest request, [FromQuery] string? t = null)
     {
+        // Fallback: if token missing from body, read from query string
+        if (string.IsNullOrWhiteSpace(request.Token) && !string.IsNullOrWhiteSpace(t))
+            request = request with { Token = t };
+
         if (string.IsNullOrWhiteSpace(request.Token))
             return BadRequest(new AuthResponse(false, "", "", "", "", Guid.Empty, "Invite token required"));
 
