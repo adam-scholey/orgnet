@@ -197,7 +197,6 @@ try
                     "IsCancelled" boolean NOT NULL DEFAULT false,
                     "CreatedAt" timestamp with time zone NOT NULL DEFAULT NOW(),
                     "ModifiedAt" timestamp with time zone,
-                    "xmin" xid NOT NULL,
                     CONSTRAINT "PK_Appointments" PRIMARY KEY ("Id"),
                     CONSTRAINT "FK_Appointments_Tenants_TenantId" FOREIGN KEY ("TenantId") REFERENCES "Tenants" ("Id") ON DELETE CASCADE,
                     CONSTRAINT "FK_Appointments_Users_CreatedByUserId" FOREIGN KEY ("CreatedByUserId") REFERENCES "Users" ("Id") ON DELETE RESTRICT,

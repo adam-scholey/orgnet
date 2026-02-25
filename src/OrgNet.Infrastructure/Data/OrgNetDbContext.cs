@@ -180,7 +180,7 @@ public class OrgNetDbContext : DbContext
             e.Property(a => a.Title).HasMaxLength(300).IsRequired();
             e.Property(a => a.Description).HasMaxLength(2000);
             e.Property(a => a.Location).HasMaxLength(300);
-            e.Property(a => a.RowVersion).IsRowVersion();
+            e.Property(a => a.xmin).IsRowVersion();
             e.HasIndex(a => new { a.TenantId, a.StartsAt, a.EndsAt });
             e.HasOne(a => a.CreatedBy).WithMany().HasForeignKey(a => a.CreatedByUserId).OnDelete(DeleteBehavior.Restrict);
             e.HasOne(a => a.AssignedTo).WithMany().HasForeignKey(a => a.AssignedToUserId).OnDelete(DeleteBehavior.SetNull);

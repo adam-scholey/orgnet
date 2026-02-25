@@ -19,8 +19,8 @@ public class Appointment
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? ModifiedAt { get; set; }
 
-    /// <summary>Optimistic concurrency token for double-booking prevention</summary>
-    public uint RowVersion { get; set; }
+    /// <summary>PostgreSQL xmin system column — mapped by EF Core for optimistic concurrency</summary>
+    public uint xmin { get; set; }
 
     // Navigation
     public Tenant Tenant { get; set; } = null!;
