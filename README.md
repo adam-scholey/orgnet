@@ -247,6 +247,41 @@ dotnet run --project src/OrgNet.Desktop -f net10.0-windows10.0.19041.0
 
 OrgNet can be tested in a Windows VM for isolated evaluation, CI/CD, or demonstration purposes.
 
+### Automated Setup (Recommended)
+
+A PowerShell script `setup.ps1` is included in the root of the repository. It automates the entire setup:
+
+- Checks Windows version compatibility
+- Installs .NET 10 SDK, Git, and Docker Desktop via `winget`
+- Restores all NuGet packages
+- Starts PostgreSQL and Redis via `docker-compose`
+- Configures all required user secrets
+- Builds both the API and Desktop projects
+
+**Run inside your VM (as Administrator):**
+```powershell
+# 1. Clone the repo
+git clone https://github.com/AdamScholey25/orgnet.git
+cd orgnet
+
+# 2. Allow the script to run (one-time for this session)
+Set-ExecutionPolicy Bypass -Scope Process -Force
+
+# 3. Run setup
+.\setup.ps1
+```
+
+**Optional parameters** (use if your PostgreSQL password is different):
+```powershell
+.\setup.ps1 -DbPassword "MyPassword" -JwtSecret "MyCustomSecretKey-Min-32-Chars!!"
+```
+
+After setup completes, follow the on-screen instructions to start the API and Desktop client.
+
+> **Note**: If Docker Desktop is installed for the first time by the script, you may need to **restart the VM** and re-run `.\setup.ps1` to complete the Docker setup and start the containers.
+
+---
+
 ### Option 1 — Hyper-V (Windows Pro/Enterprise)
 
 1. **Enable Hyper-V**:
@@ -261,41 +296,7 @@ OrgNet can be tested in a Windows VM for isolated evaluation, CI/CD, or demonstr
    - Install **Windows 10 (Build 19041+)** or **Windows 11**
    - Enable **Enhanced Session Mode** for clipboard/file sharing
 
-3. **Inside the VM — Install Prerequisites**:
-   ```powershell
-   # Install .NET 10 SDK
-   winget install Microsoft.DotNet.SDK.10
-
-   # Install PostgreSQL 16
-   winget install PostgreSQL.PostgreSQL.16
-
-   # Install Git
-   winget install Git.Git
-
-   # (Optional) Install Redis via Docker or Windows Subsystem for Linux
-   winget install Docker.DockerDesktop
-   ```
-
-4. **Clone and Run**:
-   ```powershell
-   git clone https://github.com/AdamScholey25/orgnet.git
-   cd orgnet
-
-   # Start database
-   docker-compose up -d postgres redis
-
-   # Configure secrets
-   cd src/OrgNet.Api
-   dotnet user-secrets set "Jwt:Secret" "YourSuperSecretKey-Must-Be-At-Least-32-Characters-Long!!"
-   dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Host=localhost;Port=5432;Database=orgnet;Username=postgres;Password=postgres"
-   cd ../..
-
-   # Run API (Terminal 1)
-   dotnet run --project src/OrgNet.Api
-
-   # Run Desktop (Terminal 2)
-   dotnet run --project src/OrgNet.Desktop -f net10.0-windows10.0.19041.0
-   ```
+3. **Inside the VM** — clone the repo and run `setup.ps1` (see Automated Setup above).
 
 ### Option 2 — VirtualBox (Free, any Windows edition)
 
@@ -306,17 +307,17 @@ OrgNet can be tested in a Windows VM for isolated evaluation, CI/CD, or demonstr
    - **CPUs**: 2 minimum
    - **Video Memory**: 128 MB
    - **Storage**: 40 GB dynamically allocated
-   - **Network**: NAT (default) — the API and desktop client both run on localhost inside the VM
+   - **Network**: NAT (default) — API and desktop both run on localhost inside the VM
    - Enable **3D Acceleration** for WinUI 3 rendering
    - Install **VirtualBox Guest Additions** for shared folders and clipboard
-4. Follow the same **Clone and Run** steps as above.
+4. **Inside the VM** — clone the repo and run `setup.ps1` (see Automated Setup above).
 
 ### Option 3 — VMware Workstation Player (Free for personal use)
 
 1. **Download VMware Player**: https://www.vmware.com/products/workstation-player.html
-2. Create a new VM with **Windows 10/11**, allocate 4+ GB RAM and 2+ CPUs.
+2. Create a VM with **Windows 10/11**, allocate 4+ GB RAM and 2+ CPUs.
 3. Install **VMware Tools** for better graphics and shared folders.
-4. Follow the same **Clone and Run** steps as above.
+4. **Inside the VM** — clone the repo and run `setup.ps1` (see Automated Setup above).
 
 ### VM Network Notes
 
