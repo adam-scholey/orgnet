@@ -39,6 +39,9 @@ try
     builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         .AddJwtBearer(options =>
         {
+            // Prevent the handler from remapping "sub" -> ClaimTypes.NameIdentifier etc.
+            options.MapInboundClaims = false;
+
             options.TokenValidationParameters = new TokenValidationParameters
             {
                 ValidateIssuerSigningKey = true,
@@ -48,7 +51,10 @@ try
                 ValidateAudience = true,
                 ValidAudience = builder.Configuration["Jwt:Audience"] ?? "OrgNet.Clients",
                 ValidateLifetime = true,
-                ClockSkew = TimeSpan.FromSeconds(30)
+                ClockSkew = TimeSpan.FromSeconds(30),
+                // Tell the identity system which short claim names to use for Name and Role
+                NameClaimType = "name",
+                RoleClaimType = "role"
             };
 
             // Allow SignalR to receive the JWT via query string

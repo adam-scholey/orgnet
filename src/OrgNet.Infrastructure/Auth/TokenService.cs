@@ -31,9 +31,8 @@ public class TokenService
         {
             new Claim(OrgNetConstants.ClaimTypes.UserId, userId.ToString()),
             new Claim(OrgNetConstants.ClaimTypes.TenantId, tenantId.ToString()),
-            new Claim(ClaimTypes.Name, displayName),
+            new Claim("name", displayName),
             new Claim(OrgNetConstants.ClaimTypes.Role, role),
-            new Claim(ClaimTypes.Role, role),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
 
