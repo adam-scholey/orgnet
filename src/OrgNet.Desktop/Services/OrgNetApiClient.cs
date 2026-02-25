@@ -1,6 +1,7 @@
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using Microsoft.Extensions.Configuration;
 using OrgNet.Shared.Constants;
 using OrgNet.Shared.DTOs;
 
@@ -15,13 +16,14 @@ public class OrgNetApiClient
 {
     private readonly HttpClient _http;
     private readonly ICredentialStore _credentials;
-    private const string BaseUrl = "http://localhost:5100";
+    private readonly string _baseUrl;
     private readonly SemaphoreSlim _refreshLock = new(1, 1);
 
-    public OrgNetApiClient(ICredentialStore credentials)
+    public OrgNetApiClient(ICredentialStore credentials, IConfiguration configuration)
     {
         _credentials = credentials;
-        _http = new HttpClient { BaseAddress = new Uri(BaseUrl), Timeout = TimeSpan.FromSeconds(30) };
+        _baseUrl = configuration["OrgNet:ApiBaseUrl"] ?? "http://localhost:5100";
+        _http = new HttpClient { BaseAddress = new Uri(_baseUrl), Timeout = TimeSpan.FromSeconds(30) };
     }
 
     private void AttachHeaders()
@@ -219,7 +221,7 @@ public class OrgNetApiClient
         }
         catch (HttpRequestException ex)
         {
-            LastError = $"Cannot reach API at {BaseUrl}: {ex.Message}";
+            LastError = $"Cannot reach API at {_baseUrl}: {ex.Message}";
             return default;
         }
         catch (TaskCanceledException)
@@ -260,7 +262,7 @@ public class OrgNetApiClient
         }
         catch (HttpRequestException ex)
         {
-            LastError = $"Cannot reach API at {BaseUrl}: {ex.Message}";
+            LastError = $"Cannot reach API at {_baseUrl}: {ex.Message}";
             return default;
         }
         catch (TaskCanceledException)
@@ -299,7 +301,7 @@ public class OrgNetApiClient
             }
             return await response.Content.ReadFromJsonAsync<T>();
         }
-        catch (HttpRequestException ex) { LastError = $"Cannot reach API at {BaseUrl}: {ex.Message}"; return default; }
+        catch (HttpRequestException ex) { LastError = $"Cannot reach API at {_baseUrl}: {ex.Message}"; return default; }
         catch (TaskCanceledException) { LastError = "Request timed out — is the API running?"; return default; }
         catch (Exception ex) { LastError = ex.Message; return default; }
     }
@@ -327,7 +329,7 @@ public class OrgNetApiClient
             }
             return true;
         }
-        catch (HttpRequestException ex) { LastError = $"Cannot reach API at {BaseUrl}: {ex.Message}"; return false; }
+        catch (HttpRequestException ex) { LastError = $"Cannot reach API at {_baseUrl}: {ex.Message}"; return false; }
         catch (TaskCanceledException) { LastError = "Request timed out — is the API running?"; return false; }
         catch (Exception ex) { LastError = ex.Message; return false; }
     }

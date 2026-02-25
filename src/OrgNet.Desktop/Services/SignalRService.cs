@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.Extensions.Configuration;
 using OrgNet.Shared.DTOs;
 
 namespace OrgNet.Desktop.Services;
@@ -12,7 +13,7 @@ public class SignalRService : IAsyncDisposable
 {
     private HubConnection? _hub;
     private readonly ICredentialStore _credentials;
-    private const string HubUrl = "http://localhost:5100/hubs/orgnet";
+    private readonly string _hubUrl;
 
     public bool IsConnected => _hub?.State == HubConnectionState.Connected;
 
@@ -20,9 +21,11 @@ public class SignalRService : IAsyncDisposable
     public event Action<NotificationDto>? OnNotification;
     public event Action<bool>? OnConnectionChanged;
 
-    public SignalRService(ICredentialStore credentials)
+    public SignalRService(ICredentialStore credentials, IConfiguration configuration)
     {
         _credentials = credentials;
+        var baseUrl = configuration["OrgNet:ApiBaseUrl"] ?? "http://localhost:5100";
+        _hubUrl = $"{baseUrl.TrimEnd('/')}/hubs/orgnet";
     }
 
     public async Task ConnectAsync()
@@ -33,7 +36,7 @@ public class SignalRService : IAsyncDisposable
         if (string.IsNullOrEmpty(token)) return;
 
         _hub = new HubConnectionBuilder()
-            .WithUrl(HubUrl, options =>
+            .WithUrl(_hubUrl, options =>
             {
                 options.AccessTokenProvider = () => Task.FromResult<string?>(token);
             })
