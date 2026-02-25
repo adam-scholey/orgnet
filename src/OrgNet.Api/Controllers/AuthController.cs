@@ -202,6 +202,7 @@ public class AuthController : ControllerBase
                 <strong>Email:</strong> {{invite.Email}}
             </div>
             <form id="f" onsubmit="return doAccept(event)">
+                <input id="tk" type="hidden" value="{{token}}">
                 <label for="name">Display Name</label>
                 <input id="name" type="text" required minlength="1" maxlength="150" placeholder="Your name">
                 <label for="pw">Password</label>
@@ -214,11 +215,12 @@ public class AuthController : ControllerBase
             async function doAccept(e){
                 e.preventDefault();
                 const btn=document.getElementById('btn'),msg=document.getElementById('msg');
+                const tk=document.getElementById('tk').value;
                 btn.disabled=true; msg.className='msg'; msg.textContent='Joining...';
                 try{
                     const res=await fetch('/api/auth/accept-invite',{
                         method:'POST',headers:{'Content-Type':'application/json'},
-                        body:JSON.stringify({token:'{{token}}',displayName:document.getElementById('name').value,password:document.getElementById('pw').value})
+                        body:JSON.stringify({token:tk,displayName:document.getElementById('name').value,password:document.getElementById('pw').value})
                     });
                     const data=await res.json();
                     if(data.success){
