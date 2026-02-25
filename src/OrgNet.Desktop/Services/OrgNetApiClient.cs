@@ -16,6 +16,7 @@ public class OrgNetApiClient
     private readonly HttpClient _http;
     private readonly ICredentialStore _credentials;
     private const string BaseUrl = "http://localhost:5100";
+    private readonly SemaphoreSlim _refreshLock = new(1, 1);
 
     public OrgNetApiClient(ICredentialStore credentials)
     {
@@ -52,16 +53,37 @@ public class OrgNetApiClient
 
     public async Task<TokenPair?> RefreshTokenAsync()
     {
-        var refreshToken = _credentials.GetRefreshToken();
-        if (string.IsNullOrEmpty(refreshToken)) return null;
+        // Prevent concurrent refreshes — refresh tokens are single-use with rotation.
+        // A second concurrent call would use an already-revoked token, triggering
+        // replay-attack detection and killing the entire session.
+        if (!await _refreshLock.WaitAsync(TimeSpan.FromSeconds(10)))
+            return null;
 
-        var result = await PostJson<TokenPair>("api/auth/refresh", new RefreshTokenRequest(refreshToken));
-        if (result != null)
+        try
         {
-            var tenantId = _credentials.GetTenantId() ?? Guid.Empty;
-            _credentials.StoreTokens(result.AccessToken, result.RefreshToken, tenantId);
+            var refreshToken = _credentials.GetRefreshToken();
+            if (string.IsNullOrEmpty(refreshToken)) return null;
+
+            // Call refresh directly — do NOT use PostJson (which retries on 401, causing recursion)
+            var response = await _http.PostAsJsonAsync("api/auth/refresh", new RefreshTokenRequest(refreshToken));
+            if (!response.IsSuccessStatusCode) return null;
+
+            var result = await response.Content.ReadFromJsonAsync<TokenPair>();
+            if (result != null)
+            {
+                var tenantId = _credentials.GetTenantId() ?? Guid.Empty;
+                _credentials.StoreTokens(result.AccessToken, result.RefreshToken, tenantId);
+            }
+            return result;
         }
-        return result;
+        catch
+        {
+            return null;
+        }
+        finally
+        {
+            _refreshLock.Release();
+        }
     }
 
     public async Task RevokeTokenAsync()
@@ -73,6 +95,9 @@ public class OrgNetApiClient
             await _http.PostAsJsonAsync("api/auth/revoke", new RefreshTokenRequest(refreshToken));
         }
     }
+
+    // ── Profile ──
+    public async Task<object?> GetMeAsync() => await GetJson<object>("api/auth/me");
 
     // ── Tenant ──
     public async Task<TenantInfoDto?> GetTenantAsync() => await GetJson<TenantInfoDto>("api/tenant");

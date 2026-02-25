@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
@@ -20,6 +21,7 @@ public class HeartbeatService : BackgroundService
     private readonly LocalCacheService _cache;
     private readonly ILogger<HeartbeatService> _logger;
     private static readonly TimeSpan Interval = TimeSpan.FromSeconds(30);
+    private static readonly TimeSpan RefreshThreshold = TimeSpan.FromMinutes(2);
 
     public HeartbeatService(ICredentialStore credentials, OrgNetApiClient apiClient,
         LocalCacheService cache, ILogger<HeartbeatService> logger)
@@ -44,8 +46,12 @@ public class HeartbeatService : BackgroundService
                 if (string.IsNullOrEmpty(token))
                     continue;
 
-                // Proactive token refresh — refresh if token will expire within 2 minutes
-                await _apiClient.RefreshTokenAsync();
+                // Only refresh if the access token is close to expiry
+                if (IsTokenExpiringSoon(token))
+                {
+                    _logger.LogDebug("Access token expiring soon — refreshing");
+                    await _apiClient.RefreshTokenAsync();
+                }
 
                 // Sync tenant info to local cache
                 var tenant = await _apiClient.GetTenantAsync();
@@ -69,5 +75,40 @@ public class HeartbeatService : BackgroundService
         }
 
         _logger.LogInformation("HeartbeatService stopped");
+    }
+
+    /// <summary>
+    /// Parse the JWT payload to check if the "exp" claim is within RefreshThreshold of now.
+    /// Returns true if the token is about to expire or cannot be parsed.
+    /// </summary>
+    private bool IsTokenExpiringSoon(string jwt)
+    {
+        try
+        {
+            var parts = jwt.Split('.');
+            if (parts.Length != 3) return true;
+
+            var payload = parts[1];
+            // Fix base64url padding
+            switch (payload.Length % 4)
+            {
+                case 2: payload += "=="; break;
+                case 3: payload += "="; break;
+            }
+            payload = payload.Replace('-', '+').Replace('_', '/');
+
+            var json = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(payload));
+            using var doc = JsonDocument.Parse(json);
+            if (doc.RootElement.TryGetProperty("exp", out var expProp))
+            {
+                var exp = DateTimeOffset.FromUnixTimeSeconds(expProp.GetInt64());
+                return exp - DateTimeOffset.UtcNow < RefreshThreshold;
+            }
+            return true;
+        }
+        catch
+        {
+            return true;
+        }
     }
 }

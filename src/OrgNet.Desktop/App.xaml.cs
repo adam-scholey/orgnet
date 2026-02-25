@@ -83,18 +83,33 @@ public partial class App : Application
         if (nav is NavigationService navService)
             navService.SetFrame(rootFrame);
 
-        // Check for stored credentials — auto-login or show login
+        // Check for stored credentials — validate before auto-login
         var credStore = GetService<ICredentialStore>();
         var token = credStore.GetAccessToken();
+        var goToShell = false;
 
         if (!string.IsNullOrEmpty(token))
         {
-            rootFrame.Navigate(typeof(Views.ShellPage));
+            // Quick validation: try calling /api/auth/me to confirm the token is still valid
+            try
+            {
+                var api = GetService<OrgNetApiClient>();
+                var me = await api.GetMeAsync();
+                goToShell = me != null;
+            }
+            catch
+            {
+                goToShell = false;
+            }
+
+            if (!goToShell)
+            {
+                // Token is invalid/expired and refresh failed — force re-login
+                credStore.Clear();
+            }
         }
-        else
-        {
-            rootFrame.Navigate(typeof(Views.LoginPage));
-        }
+
+        rootFrame.Navigate(goToShell ? typeof(Views.ShellPage) : typeof(Views.LoginPage));
 
         _window.Title = "OrgNet";
         _window.Activate();
