@@ -54,6 +54,7 @@ public partial class App : Application
                 services.AddTransient<NotesViewModel>();
                 services.AddTransient<TaskBoardViewModel>();
                 services.AddTransient<AnnouncementsViewModel>();
+                services.AddTransient<AppointmentsViewModel>();
             })
             .Build();
     }

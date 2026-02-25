@@ -8,7 +8,7 @@
 
     <Grid Padding="24" ColumnSpacing="16">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="200"/>
+            <ColumnDefinition Width="220"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
@@ -16,17 +16,27 @@
         <Grid Grid.Column="0" RowSpacing="8">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <TextBlock Grid.Row="0" Text="Channels" FontSize="18" FontWeight="SemiBold"/>
+            <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8">
+                <TextBlock Text="Channels" FontSize="18" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                <Button x:Name="AddChannelButton" Click="OnAddChannelClicked" ToolTipService.ToolTip="Create channel" Padding="4">
+                    <FontIcon Glyph="&#xE710;" FontSize="14"/>
+                </Button>
+            </StackPanel>
 
-            <ListView x:Name="ChannelListView" Grid.Row="1" SelectionChanged="OnChannelSelected">
+            <TextBox x:Name="NewChannelBox" Grid.Row="1" PlaceholderText="New channel name..." Visibility="Collapsed" KeyDown="OnNewChannelKeyDown"/>
+
+            <ListView x:Name="ChannelListView" Grid.Row="2" SelectionChanged="OnChannelSelected">
                 <ListView.ItemTemplate>
                     <DataTemplate>
                         <StackPanel Padding="4">
-                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
-                            <TextBlock Text="{Binding MessageCount}" FontSize="11" Opacity="0.5">
+                            <TextBlock FontWeight="SemiBold">
+                                <Run Text="#"/><Run Text="{Binding Name}"/>
+                            </TextBlock>
+                            <TextBlock FontSize="11" Opacity="0.5">
                                 <Run Text="{Binding MessageCount}"/>
                                 <Run Text="messages"/>
                             </TextBlock>
@@ -37,37 +47,94 @@
         </Grid>
 
         <!-- Chat Area -->
-        <Grid Grid.Column="1" RowSpacing="12">
+        <Grid Grid.Column="1" RowSpacing="8">
             <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8">
-                <FontIcon Glyph="&#xE8BD;" FontSize="24"/>
-                <TextBlock x:Name="ChannelHeader" Text="general" FontSize="20" FontWeight="SemiBold" VerticalAlignment="Center"/>
-            </StackPanel>
+            <!-- Channel header + search -->
+            <Grid Grid.Row="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
+                    <FontIcon Glyph="&#xE8BD;" FontSize="24"/>
+                    <TextBlock x:Name="ChannelHeader" Text="#general" FontSize="20" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4">
+                    <TextBox x:Name="SearchBox" PlaceholderText="Search messages..." Width="200" KeyDown="OnSearchKeyDown"/>
+                    <Button Click="OnSearchClicked" ToolTipService.ToolTip="Search">
+                        <FontIcon Glyph="&#xE721;" FontSize="14"/>
+                    </Button>
+                    <Button x:Name="ClearSearchButton" Click="OnClearSearchClicked" Visibility="Collapsed" ToolTipService.ToolTip="Clear search">
+                        <FontIcon Glyph="&#xE711;" FontSize="14"/>
+                    </Button>
+                </StackPanel>
+            </Grid>
 
             <InfoBar x:Name="ErrorBar" Grid.Row="1" Severity="Error" Title="Error" IsOpen="False" IsClosable="True"/>
 
-            <ListView x:Name="MessageListView" Grid.Row="2" SelectionMode="None">
+            <!-- Search results banner -->
+            <InfoBar x:Name="SearchBar" Grid.Row="2" Severity="Informational" Title="Search Results" IsOpen="False" IsClosable="True"
+                     Closed="OnSearchBarClosed"/>
+
+            <!-- Message list -->
+            <ListView x:Name="MessageListView" Grid.Row="3" SelectionMode="None" RightTapped="OnMessageRightTapped">
                 <ListView.ItemTemplate>
                     <DataTemplate>
-                        <StackPanel Padding="4,8">
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                <TextBlock Text="{Binding SenderName}" FontWeight="SemiBold" FontSize="13"/>
-                                <TextBlock Text="{Binding SentAt}" FontSize="11" Opacity="0.4" VerticalAlignment="Center"/>
+                        <Grid Padding="4,8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <TextBlock Text="{Binding SenderName}" FontWeight="SemiBold" FontSize="13"/>
+                                    <TextBlock Text="{Binding SentAt}" FontSize="11" Opacity="0.4" VerticalAlignment="Center"/>
+                                    <TextBlock Text="(edited)" FontSize="11" Opacity="0.3" VerticalAlignment="Center"/>
+                                </StackPanel>
+                                <TextBlock Text="{Binding Content}" TextWrapping="Wrap" Margin="0,2,0,0"/>
                             </StackPanel>
-                            <TextBlock Text="{Binding Content}" TextWrapping="Wrap" Margin="0,2,0,0"/>
-                        </StackPanel>
+
+                            <!-- Message actions -->
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="2" VerticalAlignment="Top" Opacity="0.5">
+                                <Button Click="OnEditMessageClicked" Tag="{Binding}" ToolTipService.ToolTip="Edit" Padding="4">
+                                    <FontIcon Glyph="&#xE70F;" FontSize="12"/>
+                                </Button>
+                                <Button Click="OnDeleteMessageClicked" Tag="{Binding}" ToolTipService.ToolTip="Delete" Padding="4">
+                                    <FontIcon Glyph="&#xE74D;" FontSize="12"/>
+                                </Button>
+                            </StackPanel>
+                        </Grid>
                     </DataTemplate>
                 </ListView.ItemTemplate>
             </ListView>
 
+            <!-- Edit bar -->
+            <Grid x:Name="EditBar" Grid.Row="4" Visibility="Collapsed" Padding="4" Background="{ThemeResource SystemControlBackgroundListLowBrush}" CornerRadius="4">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBox x:Name="EditBox" Grid.Column="0" PlaceholderText="Edit message..." KeyDown="OnEditKeyDown"/>
+                <Button Grid.Column="1" Click="OnSaveEditClicked" Style="{StaticResource AccentButtonStyle}" Margin="4,0,0,0" ToolTipService.ToolTip="Save">
+                    <FontIcon Glyph="&#xE73E;" FontSize="14"/>
+                </Button>
+                <Button Grid.Column="2" Click="OnCancelEditClicked" Margin="4,0,0,0" ToolTipService.ToolTip="Cancel">
+                    <FontIcon Glyph="&#xE711;" FontSize="14"/>
+                </Button>
+            </Grid>
+
             <!-- Message Input -->
-            <Grid Grid.Row="3" ColumnSpacing="8">
+            <Grid Grid.Row="5" ColumnSpacing="8">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>

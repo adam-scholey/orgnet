@@ -78,6 +78,9 @@ public sealed partial class ShellPage : Page
                 case "Announcements":
                     ContentFrame.Navigate(typeof(AnnouncementsPage));
                     break;
+                case "Appointments":
+                    ContentFrame.Navigate(typeof(AppointmentsPage));
+                    break;
                 case "AppLauncher":
                     ContentFrame.Navigate(typeof(AppLauncherPage));
                     break;

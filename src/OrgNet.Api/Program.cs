@@ -1,3 +1,4 @@
+using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -29,6 +30,9 @@ try
     builder.Services.AddOrgNetInfrastructure(builder.Configuration);
 
     // ── JWT Authentication ──
+    // Disable automatic claim type mapping so "sub" stays as "sub" (not remapped to ClaimTypes.NameIdentifier)
+    JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
+
     var jwtSecret = builder.Configuration["Jwt:Secret"]
         ?? throw new InvalidOperationException("Jwt:Secret must be configured");
 

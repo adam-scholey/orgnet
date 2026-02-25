@@ -60,6 +60,11 @@
                         <FontIcon Glyph="&#xE789;"/>
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
+                <NavigationViewItem Content="Appointments" Tag="Appointments">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE787;"/>
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
 
                 <NavigationViewItemSeparator/>
 

@@ -132,6 +132,21 @@ public class OrgNetApiClient
     public async Task<ChatMessageDto?> SendChatMessageAsync(SendMessageRequest request) => await PostJson<ChatMessageDto>("api/chat/send", request);
     public async Task<bool> DeleteChatMessageAsync(Guid messageId) => await DeleteRequest($"api/chat/{messageId}");
 
+    // ── Appointments ──
+    public async Task<List<AppointmentDto>?> GetAppointmentsAsync(string? range = null)
+        => await GetJson<List<AppointmentDto>>(range != null ? $"api/appointments?range={range}" : "api/appointments");
+    public async Task<AppointmentDto?> CreateAppointmentAsync(CreateAppointmentRequest request)
+        => await PostJson<AppointmentDto>("api/appointments", request);
+    public async Task<AppointmentDto?> UpdateAppointmentAsync(Guid id, UpdateAppointmentRequest request)
+        => await PutJson<AppointmentDto>($"api/appointments/{id}", request);
+    public async Task<bool> CancelAppointmentAsync(Guid id) => await DeleteRequest($"api/appointments/{id}");
+
+    // ── Chat Extras ──
+    public async Task<ChatMessageDto?> EditChatMessageAsync(Guid messageId, string content)
+        => await PutJson<ChatMessageDto>($"api/chat/{messageId}", new EditMessageRequest(content));
+    public async Task<List<ChatMessageDto>?> SearchChatMessagesAsync(string channel, string query)
+        => await GetJson<List<ChatMessageDto>>($"api/chat/messages/{channel}?take=100");
+
     // ── Collaboration Notes ──
     public async Task<List<CollabNoteDto>?> GetNotesAsync() => await GetJson<List<CollabNoteDto>>("api/notes");
     public async Task<CollabNoteDto?> CreateNoteAsync(CreateNoteRequest request) => await PostJson<CollabNoteDto>("api/notes", request);
