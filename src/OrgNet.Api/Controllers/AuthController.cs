@@ -172,6 +172,7 @@ public class AuthController : ControllerBase
         }
         else
         {
+            var safeToken = System.Net.WebUtility.HtmlEncode(token);
             html = $$"""
             <!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
             <title>OrgNet — Join {{invite.OrganisationName}}</title>
@@ -202,7 +203,7 @@ public class AuthController : ControllerBase
                 <strong>Email:</strong> {{invite.Email}}
             </div>
             <form id="f" onsubmit="return doAccept(event)">
-                <input id="tk" type="hidden" value="{{token}}">
+                <input id="tk" type="hidden" value="{{safeToken}}">
                 <label for="name">Display Name</label>
                 <input id="name" type="text" required minlength="1" maxlength="150" placeholder="Your name">
                 <label for="pw">Password</label>
