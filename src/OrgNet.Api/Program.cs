@@ -243,6 +243,14 @@ try
                 END $$;
             """);
 
+            // Add Sector column to Tenants if it doesn't exist
+            await db.Database.ExecuteSqlRawAsync("""
+                DO $$ BEGIN
+                    ALTER TABLE "Tenants" ADD COLUMN IF NOT EXISTS "Sector" integer NOT NULL DEFAULT 0;
+                EXCEPTION WHEN duplicate_column THEN NULL;
+                END $$;
+            """);
+
             Log.Information("Database ready");
         }
         catch (Exception ex)
