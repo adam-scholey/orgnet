@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.UI.Xaml.Navigation;
@@ -28,7 +29,13 @@ public partial class App : Application
     {
         this.InitializeComponent();
 
+        var appDir = AppContext.BaseDirectory;
         Host = Microsoft.Extensions.Hosting.Host.CreateDefaultBuilder()
+            .ConfigureAppConfiguration((context, config) =>
+            {
+                config.SetBasePath(appDir);
+                config.AddJsonFile("appsettings.json", optional: true, reloadOnChange: false);
+            })
             .ConfigureServices((context, services) =>
             {
                 // ── Core Services ──
