@@ -202,41 +202,50 @@ public class AuthController : ControllerBase
                 <strong>Role:</strong> {{invite.Role}}<br>
                 <strong>Email:</strong> {{invite.Email}}
             </div>
-            <form id="f" onsubmit="return doAccept(event)">
+            <div id="formArea">
                 <input id="tk" type="hidden" value="{{safeToken}}">
                 <label for="name">Display Name</label>
-                <input id="name" type="text" required minlength="1" maxlength="150" placeholder="Your name">
+                <input id="name" type="text" maxlength="150" placeholder="Your name">
                 <label for="pw">Password</label>
-                <input id="pw" type="password" required minlength="8" maxlength="128" placeholder="Choose a password (min 8 chars)">
-                <button id="btn" type="submit">Join Organisation</button>
-            </form>
+                <input id="pw" type="password" maxlength="128" placeholder="Choose a password (min 8 chars)">
+                <button id="btn" type="button">Join Organisation</button>
+            </div>
             <p id="msg" class="msg"></p>
             </div>
             <script>
-            async function doAccept(e){
-                e.preventDefault();
-                const btn=document.getElementById('btn'),msg=document.getElementById('msg');
-                const tk=document.getElementById('tk').value;
+            document.getElementById('btn').addEventListener('click', function(){
+                var btn=this,msg=document.getElementById('msg');
+                var tk=document.getElementById('tk').value;
+                var nm=document.getElementById('name').value;
+                var pw=document.getElementById('pw').value;
+                if(!nm){msg.className='msg err';msg.textContent='Please enter your name.';return;}
+                if(!pw||pw.length<8){msg.className='msg err';msg.textContent='Password must be at least 8 characters.';return;}
                 btn.disabled=true; msg.className='msg'; msg.textContent='Joining...';
-                try{
-                    const res=await fetch('/api/auth/accept-invite?t='+encodeURIComponent(tk),{
-                        method:'POST',headers:{'Content-Type':'application/json'},
-                        body:JSON.stringify({token:tk,displayName:document.getElementById('name').value,password:document.getElementById('pw').value})
-                    });
-                    const data=await res.json();
-                    if(data.success){
-                        msg.className='msg ok';
-                        msg.textContent='Welcome! You have joined '+data.displayName+'. You can now log in from the OrgNet desktop app.';
-                        document.getElementById('f').style.display='none';
-                    }else{
-                        msg.className='msg err'; msg.textContent=data.error||'Failed to accept invite';
+                var xhr=new XMLHttpRequest();
+                xhr.open('POST','/api/auth/accept-invite?t='+encodeURIComponent(tk),true);
+                xhr.setRequestHeader('Content-Type','application/json');
+                xhr.onload=function(){
+                    try{
+                        var data=JSON.parse(xhr.responseText);
+                        if(data.success){
+                            msg.className='msg ok';
+                            msg.textContent='Welcome! You have joined successfully. You can now log in from the OrgNet desktop app.';
+                            document.getElementById('formArea').style.display='none';
+                        }else{
+                            msg.className='msg err';msg.textContent=data.error||'Failed to accept invite.';
+                            btn.disabled=false;
+                        }
+                    }catch(ex){
+                        msg.className='msg err';msg.textContent='Error: '+xhr.responseText;
                         btn.disabled=false;
                     }
-                }catch(ex){
-                    msg.className='msg err'; msg.textContent='Network error: '+ex.message;
+                };
+                xhr.onerror=function(){
+                    msg.className='msg err';msg.textContent='Network error — is the API running?';
                     btn.disabled=false;
-                }
-            }
+                };
+                xhr.send(JSON.stringify({token:tk,displayName:nm,password:pw}));
+            });
             </script>
             </body></html>
             """;
