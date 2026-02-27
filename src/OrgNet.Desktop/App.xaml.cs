@@ -29,12 +29,23 @@ public partial class App : Application
     {
         this.InitializeComponent();
 
-        var appDir = AppContext.BaseDirectory;
+        // Search multiple directories for appsettings.json (handles x64/win-x64 output paths)
+        var searchDirs = new[]
+        {
+            AppContext.BaseDirectory,
+            Path.Combine(AppContext.BaseDirectory, "win-x64"),
+            Path.GetDirectoryName(Environment.ProcessPath) ?? AppContext.BaseDirectory,
+            Environment.CurrentDirectory
+        };
+        var appSettingsDir = searchDirs.FirstOrDefault(d => File.Exists(Path.Combine(d, "appsettings.json")))
+                             ?? AppContext.BaseDirectory;
+
         Host = Microsoft.Extensions.Hosting.Host.CreateDefaultBuilder()
             .ConfigureAppConfiguration((context, config) =>
             {
-                config.SetBasePath(appDir);
-                config.AddJsonFile("appsettings.json", optional: true, reloadOnChange: false);
+                config.Sources.Clear();
+                config.SetBasePath(appSettingsDir);
+                config.AddJsonFile("appsettings.json", optional: false, reloadOnChange: false);
             })
             .ConfigureServices((context, services) =>
             {
