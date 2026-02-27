@@ -246,31 +246,52 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
+    /// Diagnostic: check what the invite page HTML looks like for a token.
+    /// GET /api/auth/invite-debug?token=xyz
+    /// </summary>
+    [HttpGet("invite-debug")]
+    [AllowAnonymous]
+    public IActionResult InviteDebug([FromQuery] string? token)
+    {
+        return Ok(new { receivedToken = token, length = token?.Length ?? 0, isEmpty = string.IsNullOrWhiteSpace(token) });
+    }
+
+    /// <summary>
     /// Accept an invitation — creates the user account in the tenant.
     /// Public endpoint: the invited user provides the token, their display name, and a password.
     /// Returns an AuthResponse so they are immediately logged in.
     /// </summary>
     [HttpPost("accept-invite")]
-    public async Task<ActionResult<AuthResponse>> AcceptInvite([FromBody] AcceptInviteRequest request, [FromQuery] string? t = null)
+    public async Task<ActionResult<AuthResponse>> AcceptInvite([FromQuery] string? t = null)
     {
-        // Fallback: if token missing from body, read from query string
-        if (string.IsNullOrWhiteSpace(request.Token) && !string.IsNullOrWhiteSpace(t))
-            request = request with { Token = t };
+        // Manually read JSON body to avoid model validation blocking on Token
+        string body;
+        using (var reader = new System.IO.StreamReader(Request.Body))
+            body = await reader.ReadToEndAsync();
 
-        if (string.IsNullOrWhiteSpace(request.Token))
+        var json = System.Text.Json.JsonDocument.Parse(body).RootElement;
+        var token = json.TryGetProperty("token", out var tokEl) ? tokEl.GetString() : null;
+        var displayName = json.TryGetProperty("displayName", out var dnEl) ? dnEl.GetString() : null;
+        var password = json.TryGetProperty("password", out var pwEl) ? pwEl.GetString() : null;
+
+        // Fallback: query string
+        if (string.IsNullOrWhiteSpace(token)) token = t;
+
+        if (string.IsNullOrWhiteSpace(token))
             return BadRequest(new AuthResponse(false, "", "", "", "", Guid.Empty, "Invite token required"));
 
-        if (string.IsNullOrWhiteSpace(request.DisplayName) || request.DisplayName.Length > 150)
+        if (string.IsNullOrWhiteSpace(displayName) || displayName.Length > 150)
             return BadRequest(new AuthResponse(false, "", "", "", "", Guid.Empty, "Display name required (max 150 chars)"));
 
-        if (string.IsNullOrWhiteSpace(request.Password) || request.Password.Length < 8 || request.Password.Length > 128)
+        if (string.IsNullOrWhiteSpace(password) || password.Length < 8 || password.Length > 128)
             return BadRequest(new AuthResponse(false, "", "", "", "", Guid.Empty, "Password must be 8-128 characters"));
 
+        var request = new AcceptInviteRequest(token, displayName, password);
         var result = await _authService.AcceptInvitationAsync(request);
 
         if (result.Success)
         {
-            await _auditService.LogAsync(null, request.DisplayName, AuditAction.Login, "User",
+            await _auditService.LogAsync(null, displayName, AuditAction.Login, "User",
                 details: "Accepted invitation and joined organisation",
                 ipAddress: HttpContext.Connection.RemoteIpAddress?.ToString());
         }
