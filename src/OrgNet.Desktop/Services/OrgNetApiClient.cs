@@ -224,7 +224,7 @@ public class OrgNetApiClient
     }
 
     // ── Helpers ──
-    public string? LastError { get; private set; }
+    public string? LastError { get; set; }
 
     private async Task<T?> GetJson<T>(string url)
     {

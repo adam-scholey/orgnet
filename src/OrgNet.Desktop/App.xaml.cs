@@ -114,6 +114,9 @@ public partial class App : Application
             {
                 // Token is invalid/expired and refresh failed — force re-login
                 credStore.Clear();
+                // Clear any stale error so it doesn't show on the login page
+                var api2 = GetService<OrgNetApiClient>();
+                api2.LastError = null;
             }
         }
 
