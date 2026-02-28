@@ -1,0 +1,178 @@
+@page "/chat"
+@attribute [Authorize]
+@inject ApiClient Api
+
+<div class="page-content">
+    <h2 class="page-title">Chat</h2>
+
+    <div class="chat-channels">
+        @if (_channels?.Count > 0)
+        {
+            @foreach (var ch in _channels.Select(m => m.Channel).Distinct())
+            {
+                <button class="channel-btn @(_activeChannel == ch ? "active" : "")" @onclick="() => SelectChannel(ch)">
+                    # @ch
+                </button>
+            }
+        }
+    </div>
+
+    <div class="chat-messages">
+        @if (_filtered?.Count > 0)
+        {
+            @foreach (var msg in _filtered)
+            {
+                <div class="chat-bubble @(msg.SenderName == "You" ? "own" : "")">
+                    <div class="chat-sender">@msg.SenderName</div>
+                    <div class="chat-text">@msg.Content</div>
+                    <div class="chat-time">@msg.SentAt.ToString("HH:mm")</div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="empty">No messages in this channel</div>
+        }
+    </div>
+
+    <div class="chat-input-row">
+        <input type="text" @bind="_newMessage" placeholder="Type a message..." @onkeydown="HandleKey" />
+        <button class="send-btn" @onclick="SendMessage">Send</button>
+    </div>
+</div>
+
+<style>
+    .chat-channels {
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        padding-bottom: 12px;
+        flex-shrink: 0;
+    }
+    .channel-btn {
+        background: #1f2937;
+        border: 1px solid #374151;
+        color: #9ca3af;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 13px;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: all 0.15s;
+    }
+    .channel-btn.active, .channel-btn:hover {
+        background: #7c3aed;
+        color: white;
+        border-color: #7c3aed;
+    }
+    .chat-messages {
+        flex: 1;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding: 8px 0;
+        min-height: 200px;
+        max-height: calc(100dvh - 280px);
+    }
+    .chat-bubble {
+        background: #1a1a2e;
+        border-radius: 12px;
+        padding: 10px 14px;
+        max-width: 80%;
+        border: 1px solid #1f2937;
+    }
+    .chat-bubble.own {
+        align-self: flex-end;
+        background: #312e81;
+        border-color: #4338ca;
+    }
+    .chat-sender {
+        font-size: 11px;
+        color: #a78bfa;
+        font-weight: 600;
+        margin-bottom: 2px;
+    }
+    .chat-text { font-size: 14px; color: #e5e7eb; }
+    .chat-time { font-size: 10px; color: #6b7280; margin-top: 4px; text-align: right; }
+    .chat-input-row {
+        display: flex;
+        gap: 8px;
+        padding-top: 12px;
+        flex-shrink: 0;
+    }
+    .chat-input-row input {
+        flex: 1;
+        padding: 10px 14px;
+        background: #111827;
+        border: 1px solid #374151;
+        border-radius: 8px;
+        color: white;
+        font-size: 14px;
+        outline: none;
+    }
+    .chat-input-row input:focus { border-color: #7c3aed; }
+    .send-btn {
+        background: #7c3aed;
+        color: white;
+        border: none;
+        padding: 10px 18px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+    .send-btn:hover { background: #6d28d9; }
+</style>
+
+@code {
+    private List<ChatMessageDto>? _channels;
+    private List<ChatMessageDto>? _filtered;
+    private string _activeChannel = "general";
+    private string _newMessage = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        _channels = await Api.GetAsync<List<ChatMessageDto>>("api/chat/general");
+        // Try loading all common channels
+        var channels = new[] { "general", "random", "dev", "announcements" };
+        var all = new List<ChatMessageDto>();
+        foreach (var ch in channels)
+        {
+            var msgs = await Api.GetAsync<List<ChatMessageDto>>($"api/chat/{ch}");
+            if (msgs != null) all.AddRange(msgs);
+        }
+        _channels = all;
+        FilterMessages();
+    }
+
+    private void SelectChannel(string channel)
+    {
+        _activeChannel = channel;
+        FilterMessages();
+    }
+
+    private void FilterMessages()
+    {
+        _filtered = _channels?.Where(m => m.Channel == _activeChannel).OrderBy(m => m.SentAt).ToList();
+    }
+
+    private async Task HandleKey(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter") await SendMessage();
+    }
+
+    private async Task SendMessage()
+    {
+        if (string.IsNullOrWhiteSpace(_newMessage)) return;
+        var msg = new SendMessageRequest(_activeChannel, _newMessage);
+        await Api.PostAsync<ChatMessageDto>("api/chat", msg);
+        _newMessage = "";
+        // Refresh
+        var msgs = await Api.GetAsync<List<ChatMessageDto>>($"api/chat/{_activeChannel}");
+        if (msgs != null)
+        {
+            _channels = _channels?.Where(m => m.Channel != _activeChannel).Concat(msgs).ToList();
+            FilterMessages();
+        }
+    }
+}

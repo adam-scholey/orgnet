@@ -1,0 +1,141 @@
+@page "/tasks"
+@attribute [Authorize]
+@inject ApiClient Api
+
+<div class="page-content">
+    <h2 class="page-title">Tasks</h2>
+
+    <div class="filter-row">
+        @foreach (var s in new[] { "All", "Todo", "InProgress", "Review", "Done" })
+        {
+            <button class="filter-btn @(_filter == s ? "active" : "")" @onclick="() => SetFilter(s)">@s</button>
+        }
+    </div>
+
+    @if (_filtered?.Count > 0)
+    {
+        @foreach (var t in _filtered)
+        {
+            <div class="card">
+                <div class="card-row">
+                    <span class="status-dot @StatusClass(t.Status)"></span>
+                    <div class="card-main">
+                        <div class="card-title">@t.Title</div>
+                        <div class="card-meta">@t.Priority priority · @t.AssignedTo</div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="empty">No tasks found</div>
+    }
+
+    <div class="fab-area">
+        @if (!_showAdd)
+        {
+            <button class="fab" @onclick="() => _showAdd = true">+</button>
+        }
+        else
+        {
+            <div class="add-card">
+                <input type="text" @bind="_newTitle" placeholder="Task title" />
+                <div class="add-row">
+                    <select @bind="_newPriority">
+                        <option value="Medium">Medium</option>
+                        <option value="Low">Low</option>
+                        <option value="High">High</option>
+                        <option value="Critical">Critical</option>
+                    </select>
+                    <button class="btn-primary-sm" @onclick="AddTask">Add</button>
+                    <button class="btn-ghost" @onclick="() => _showAdd = false">Cancel</button>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .filter-row { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 12px; }
+    .filter-btn {
+        background: #1f2937; border: 1px solid #374151; color: #9ca3af;
+        padding: 6px 14px; border-radius: 20px; font-size: 12px; cursor: pointer; white-space: nowrap;
+    }
+    .filter-btn.active, .filter-btn:hover { background: #7c3aed; color: white; border-color: #7c3aed; }
+    .card-row { display: flex; align-items: flex-start; gap: 10px; }
+    .card-main { flex: 1; }
+    .status-dot {
+        width: 10px; height: 10px; border-radius: 50%; margin-top: 6px; flex-shrink: 0;
+    }
+    .status-dot.todo { background: #6b7280; }
+    .status-dot.inprogress { background: #3b82f6; }
+    .status-dot.review { background: #f59e0b; }
+    .status-dot.done { background: #22c55e; }
+    .fab-area { position: fixed; bottom: 80px; right: 20px; z-index: 10; }
+    .fab {
+        width: 52px; height: 52px; border-radius: 50%; background: #7c3aed; color: white;
+        border: none; font-size: 28px; cursor: pointer; box-shadow: 0 4px 12px rgba(124,58,237,0.4);
+    }
+    .add-card {
+        background: #1a1a2e; border: 1px solid #1f2937; border-radius: 12px; padding: 16px;
+        display: flex; flex-direction: column; gap: 10px; min-width: 260px;
+    }
+    .add-card input, .add-card select {
+        padding: 8px 12px; background: #111827; border: 1px solid #374151; border-radius: 8px;
+        color: white; font-size: 14px; outline: none;
+    }
+    .add-row { display: flex; gap: 8px; }
+    .btn-primary-sm {
+        background: #7c3aed; color: white; border: none; padding: 8px 16px; border-radius: 8px;
+        font-size: 13px; font-weight: 600; cursor: pointer;
+    }
+    .btn-ghost {
+        background: none; border: 1px solid #374151; color: #9ca3af; padding: 8px 12px;
+        border-radius: 8px; font-size: 13px; cursor: pointer;
+    }
+</style>
+
+@code {
+    private List<TaskItemDto>? _tasks;
+    private List<TaskItemDto>? _filtered;
+    private string _filter = "All";
+    private bool _showAdd;
+    private string _newTitle = "";
+    private string _newPriority = "Medium";
+
+    protected override async Task OnInitializedAsync()
+    {
+        _tasks = await Api.GetAsync<List<TaskItemDto>>("api/tasks");
+        ApplyFilter();
+    }
+
+    private void SetFilter(string f) { _filter = f; ApplyFilter(); }
+
+    private void ApplyFilter()
+    {
+        _filtered = _filter == "All"
+            ? _tasks
+            : _tasks?.Where(t => t.Status.Equals(_filter, StringComparison.OrdinalIgnoreCase)).ToList();
+    }
+
+    private string StatusClass(string status) => status.ToLower() switch
+    {
+        "todo" => "todo",
+        "inprogress" => "inprogress",
+        "review" => "review",
+        "done" => "done",
+        _ => ""
+    };
+
+    private async Task AddTask()
+    {
+        if (string.IsNullOrWhiteSpace(_newTitle)) return;
+        var priority = Enum.TryParse<TaskItemPriority>(_newPriority, out var p) ? p : TaskItemPriority.Medium;
+        await Api.PostAsync<TaskItemDto>("api/tasks", new CreateTaskRequest(_newTitle, null, priority));
+        _newTitle = "";
+        _showAdd = false;
+        _tasks = await Api.GetAsync<List<TaskItemDto>>("api/tasks");
+        ApplyFilter();
+    }
+}

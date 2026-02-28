@@ -1,0 +1,64 @@
+﻿@inherits LayoutComponentBase
+@inject AuthService Auth
+@inject NavigationManager Nav
+
+<AuthorizeView>
+    <Authorized>
+        <div class="app-shell">
+            <!-- Top Banner -->
+            <header class="top-banner">
+                <div class="banner-left">
+                    <span class="brand-icon">&#xE770;</span>
+                    <span class="brand-name">OrgNet</span>
+                </div>
+                <div class="banner-right">
+                    <span class="user-name">@context.User.Identity?.Name</span>
+                    <button class="logout-btn" @onclick="Logout">Logout</button>
+                </div>
+            </header>
+
+            <!-- Main Content -->
+            <main class="main-content">
+                @Body
+            </main>
+
+            <!-- Bottom Navigation (mobile) -->
+            <nav class="bottom-nav">
+                <a href="/" class="nav-item @ActiveClass("/")">
+                    <span class="nav-icon">&#x1F3E0;</span>
+                    <span class="nav-label">Home</span>
+                </a>
+                <a href="/chat" class="nav-item @ActiveClass("/chat")">
+                    <span class="nav-icon">&#x1F4AC;</span>
+                    <span class="nav-label">Chat</span>
+                </a>
+                <a href="/tasks" class="nav-item @ActiveClass("/tasks")">
+                    <span class="nav-icon">&#x2705;</span>
+                    <span class="nav-label">Tasks</span>
+                </a>
+                <a href="/files" class="nav-item @ActiveClass("/files")">
+                    <span class="nav-icon">&#x1F4C1;</span>
+                    <span class="nav-label">Files</span>
+                </a>
+                <a href="/more" class="nav-item @ActiveClass("/more")">
+                    <span class="nav-icon">&#x2026;</span>
+                    <span class="nav-label">More</span>
+                </a>
+            </nav>
+        </div>
+    </Authorized>
+    <NotAuthorized>
+        @Body
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    private string ActiveClass(string path) =>
+        Nav.Uri.EndsWith(path, StringComparison.OrdinalIgnoreCase) ? "active" : "";
+
+    private async Task Logout()
+    {
+        await Auth.LogoutAsync();
+        Nav.NavigateTo("/login", forceLoad: true);
+    }
+}

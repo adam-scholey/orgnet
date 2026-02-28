@@ -1,0 +1,49 @@
+@page "/files"
+@attribute [Authorize]
+@inject ApiClient Api
+
+<div class="page-content">
+    <h2 class="page-title">Files</h2>
+
+    @if (_files?.Count > 0)
+    {
+        @foreach (var f in _files)
+        {
+            <div class="card">
+                <div class="card-row">
+                    <span class="file-icon">&#x1F4C4;</span>
+                    <div class="card-main">
+                        <div class="card-title">@f.FileName</div>
+                        <div class="card-meta">@FormatSize(f.FileSize) · @f.UploadedAt.ToString("MMM dd, HH:mm") · @f.UploadedBy</div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="empty">No files uploaded yet</div>
+    }
+</div>
+
+<style>
+    .file-icon { font-size: 24px; margin-top: 2px; }
+    .card-row { display: flex; align-items: flex-start; gap: 12px; }
+    .card-main { flex: 1; }
+</style>
+
+@code {
+    private List<OrgFileDto>? _files;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _files = await Api.GetAsync<List<OrgFileDto>>("api/files");
+    }
+
+    private string FormatSize(long bytes)
+    {
+        if (bytes < 1024) return $"{bytes} B";
+        if (bytes < 1048576) return $"{bytes / 1024.0:F1} KB";
+        return $"{bytes / 1048576.0:F1} MB";
+    }
+}

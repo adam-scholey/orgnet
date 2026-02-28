@@ -1,0 +1,66 @@
+@page "/more"
+@attribute [Authorize]
+@inject ApiClient Api
+@inject NavigationManager Nav
+
+<div class="page-content">
+    <h2 class="page-title">More</h2>
+
+    <a href="/notes" class="more-item">
+        <span class="more-icon">&#x1F4DD;</span>
+        <div class="more-info">
+            <span class="more-label">Notes</span>
+            <span class="more-desc">Collaborative documents</span>
+        </div>
+        <span class="more-arrow">›</span>
+    </a>
+
+    <a href="/announcements" class="more-item">
+        <span class="more-icon">&#x1F4E2;</span>
+        <div class="more-info">
+            <span class="more-label">Announcements</span>
+            <span class="more-desc">Organisation-wide broadcasts</span>
+        </div>
+        <span class="more-arrow">›</span>
+    </a>
+
+    <a href="/members" class="more-item">
+        <span class="more-icon">&#x1F465;</span>
+        <div class="more-info">
+            <span class="more-label">Members</span>
+            <span class="more-desc">View team members</span>
+        </div>
+        <span class="more-arrow">›</span>
+    </a>
+
+    <a href="/profile" class="more-item">
+        <span class="more-icon">&#x1F464;</span>
+        <div class="more-info">
+            <span class="more-label">Profile</span>
+            <span class="more-desc">Your account settings</span>
+        </div>
+        <span class="more-arrow">›</span>
+    </a>
+</div>
+
+<style>
+    .more-item {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        background: #1a1a2e;
+        border: 1px solid #1f2937;
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 8px;
+        text-decoration: none;
+        color: inherit;
+        transition: background 0.15s;
+    }
+    .more-item:hover { background: #1f2937; }
+    .more-icon { font-size: 24px; flex-shrink: 0; }
+    .more-info { flex: 1; display: flex; flex-direction: column; }
+    .more-label { font-size: 15px; font-weight: 600; color: #e5e7eb; }
+    .more-desc { font-size: 12px; color: #6b7280; margin-top: 2px; }
+    .more-arrow { font-size: 20px; color: #4b5563; }
+</style>

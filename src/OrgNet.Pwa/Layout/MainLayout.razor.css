@@ -1,0 +1,115 @@
+/* ── App Shell ── */
+.app-shell {
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+    background: #0f0f0f;
+    color: #e5e7eb;
+}
+
+/* ── Top Banner ── */
+.top-banner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 48px;
+    padding: 0 16px;
+    background: #111111;
+    border-bottom: 1px solid #1f2937;
+    flex-shrink: 0;
+}
+
+.banner-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.brand-icon {
+    font-family: 'Segoe Fluent Icons', 'Segoe MDL2 Assets';
+    font-size: 18px;
+    color: #7c3aed;
+}
+
+.brand-name {
+    font-size: 16px;
+    font-weight: 700;
+    color: white;
+}
+
+.banner-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.user-name {
+    font-size: 12px;
+    color: #9ca3af;
+    background: #1f2937;
+    padding: 4px 12px;
+    border-radius: 14px;
+}
+
+.logout-btn {
+    background: none;
+    border: 1px solid #374151;
+    color: #9ca3af;
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.logout-btn:hover {
+    background: #1f2937;
+    color: white;
+}
+
+/* ── Main Content ── */
+.main-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* ── Bottom Nav ── */
+.bottom-nav {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    height: 60px;
+    background: #111111;
+    border-top: 1px solid #1f2937;
+    flex-shrink: 0;
+    padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    text-decoration: none;
+    color: #6b7280;
+    font-size: 10px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    transition: all 0.15s;
+}
+
+.nav-item:hover, .nav-item.active {
+    color: #a78bfa;
+    background: rgba(124, 58, 237, 0.1);
+}
+
+.nav-icon {
+    font-size: 20px;
+}
+
+.nav-label {
+    font-size: 10px;
+    font-weight: 500;
+}

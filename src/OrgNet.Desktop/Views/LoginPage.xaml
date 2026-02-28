@@ -5,12 +5,23 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
-    <Grid HorizontalAlignment="Center" VerticalAlignment="Center" Width="400">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="56"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Branded top bar -->
+        <Grid Grid.Row="0" Background="#111111" Padding="24,0">
+            <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                <FontIcon Glyph="&#xE770;" FontSize="20" Foreground="#7C3AED"/>
+                <TextBlock Text="OrgNet" FontSize="18" FontWeight="Bold" Foreground="White"/>
+                <TextBlock Text="Digital Operating System" FontSize="12" Foreground="#6B7280" VerticalAlignment="Center" Margin="8,2,0,0"/>
+            </StackPanel>
+        </Grid>
+
+        <Grid Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" Width="400">
         <StackPanel Spacing="16">
-            <TextBlock Text="OrgNet" FontSize="32" FontWeight="Bold" HorizontalAlignment="Center"
-                       Foreground="{StaticResource PrimaryBrush}" Margin="0,0,0,4"/>
-            <TextBlock Text="Digital Operating System" FontSize="14" HorizontalAlignment="Center"
-                       Opacity="0.6" Margin="0,0,0,20"/>
 
             <InfoBar x:Name="ErrorBar" Severity="Error" Title="Error" IsOpen="False" IsClosable="True"/>
 
@@ -90,5 +101,6 @@
                                  Click="OnJoinModeClicked"/>
             </StackPanel>
         </StackPanel>
+        </Grid>
     </Grid>
 </Page>

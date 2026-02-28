@@ -1,0 +1,46 @@
+@page "/members"
+@attribute [Authorize]
+@inject ApiClient Api
+
+<div class="page-content">
+    <h2 class="page-title">Members</h2>
+
+    @if (_users?.Count > 0)
+    {
+        @foreach (var u in _users)
+        {
+            <div class="card">
+                <div class="card-row">
+                    <div class="avatar">@u.DisplayName?.FirstOrDefault()</div>
+                    <div class="card-main">
+                        <div class="card-title">@u.DisplayName</div>
+                        <div class="card-meta">@u.Email · @u.Role</div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="empty">No members found</div>
+    }
+</div>
+
+<style>
+    .card-row { display: flex; align-items: center; gap: 12px; }
+    .card-main { flex: 1; }
+    .avatar {
+        width: 36px; height: 36px; border-radius: 50%; background: #7c3aed;
+        color: white; display: flex; align-items: center; justify-content: center;
+        font-weight: 700; font-size: 15px; flex-shrink: 0; text-transform: uppercase;
+    }
+</style>
+
+@code {
+    private List<UserProfileDto>? _users;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _users = await Api.GetAsync<List<UserProfileDto>>("api/tenant/members");
+    }
+}

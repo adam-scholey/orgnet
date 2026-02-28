@@ -1,0 +1,53 @@
+@page "/profile"
+@attribute [Authorize]
+@inject ApiClient Api
+@inject AuthService Auth
+@inject NavigationManager Nav
+
+<div class="page-content">
+    <h2 class="page-title">Profile</h2>
+
+    @if (_tenant != null)
+    {
+        <div class="card">
+            <div class="card-title">Organisation</div>
+            <div class="card-sub">@_tenant.Name · @_tenant.Plan plan · @_tenant.Sector</div>
+            <div class="card-meta">@_tenant.MemberCount members · Created @_tenant.CreatedAt.ToString("MMM dd, yyyy")</div>
+        </div>
+    }
+
+    <div class="card" style="margin-top: 16px;">
+        <button class="logout-action" @onclick="Logout">Sign Out</button>
+    </div>
+</div>
+
+<style>
+    .logout-action {
+        width: 100%;
+        padding: 12px;
+        background: #7f1d1d;
+        color: #fca5a5;
+        border: 1px solid #991b1b;
+        border-radius: 8px;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.15s;
+    }
+    .logout-action:hover { background: #991b1b; color: white; }
+</style>
+
+@code {
+    private TenantInfoDto? _tenant;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _tenant = await Api.GetAsync<TenantInfoDto>("api/tenant");
+    }
+
+    private async Task Logout()
+    {
+        await Auth.LogoutAsync();
+        Nav.NavigateTo("/login", forceLoad: true);
+    }
+}

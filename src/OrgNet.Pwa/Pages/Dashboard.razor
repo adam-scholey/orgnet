@@ -1,0 +1,75 @@
+@page "/"
+@attribute [Authorize]
+@inject ApiClient Api
+
+<div class="page-content">
+    <h2 class="page-title">Dashboard</h2>
+
+    @if (_tenant != null)
+    {
+        <div class="kpi-row">
+            <div class="kpi-card">
+                <span class="kpi-label">Organisation</span>
+                <span class="kpi-value brand">@_tenant.Name</span>
+            </div>
+            <div class="kpi-card">
+                <span class="kpi-label">Members</span>
+                <span class="kpi-value accent">@_tenant.MemberCount</span>
+            </div>
+            <div class="kpi-card">
+                <span class="kpi-label">Plan</span>
+                <span class="kpi-value success">@_tenant.Plan</span>
+            </div>
+        </div>
+    }
+
+    <div class="kpi-row">
+        <div class="kpi-card">
+            <span class="kpi-label">Tasks</span>
+            <span class="kpi-value">@_taskCount</span>
+        </div>
+        <div class="kpi-card">
+            <span class="kpi-label">Files</span>
+            <span class="kpi-value">@_fileCount</span>
+        </div>
+        <div class="kpi-card">
+            <span class="kpi-label">Notes</span>
+            <span class="kpi-value">@_noteCount</span>
+        </div>
+    </div>
+
+    <h3 class="section-title">Recent Announcements</h3>
+    @if (_announcements?.Count > 0)
+    {
+        @foreach (var a in _announcements.Take(5))
+        {
+            <div class="card">
+                <div class="card-title">@a.Title</div>
+                <div class="card-sub">@a.Body.Truncate(120)</div>
+                <div class="card-meta">@a.PublishedAt.ToString("MMM dd, HH:mm")</div>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="empty">No recent announcements</div>
+    }
+</div>
+
+@code {
+    private TenantInfoDto? _tenant;
+    private List<AnnouncementDto>? _announcements;
+    private int _taskCount, _fileCount, _noteCount;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _tenant = await Api.GetAsync<TenantInfoDto>("api/tenant");
+        _announcements = await Api.GetAsync<List<AnnouncementDto>>("api/announcements");
+        var tasks = await Api.GetAsync<List<TaskItemDto>>("api/tasks");
+        var files = await Api.GetAsync<List<OrgFileDto>>("api/files");
+        var notes = await Api.GetAsync<List<CollabNoteDto>>("api/notes");
+        _taskCount = tasks?.Count ?? 0;
+        _fileCount = files?.Count ?? 0;
+        _noteCount = notes?.Count ?? 0;
+    }
+}

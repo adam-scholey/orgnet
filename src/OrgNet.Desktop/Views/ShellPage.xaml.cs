@@ -26,6 +26,7 @@ public sealed partial class ShellPage : Page
         NavView.SelectedItem = NavView.MenuItems[0];
 
         UpdateConnectionStatus(_signalR.IsConnected);
+        PopulateBanner();
 
         // #5 Role-based nav visibility — hide admin-only items for Members
         ApplyRoleBasedNav();
@@ -96,6 +97,21 @@ public sealed partial class ShellPage : Page
     {
         ConnectionDot.Fill = new SolidColorBrush(connected ? Colors.LimeGreen : Colors.Gray);
         ConnectionText.Text = connected ? "Connected" : "Disconnected";
+    }
+
+    private async void PopulateBanner()
+    {
+        try
+        {
+            var api = App.GetService<OrgNetApiClient>();
+            var tenant = await api.GetTenantAsync();
+            if (tenant != null)
+                BannerOrgName.Text = $"— {tenant.Name}";
+
+            var credentials = App.GetService<ICredentialStore>();
+            BannerUserName.Text = credentials.GetDisplayName() ?? "";
+        }
+        catch { /* best effort */ }
     }
 
     private void ApplyRoleBasedNav()

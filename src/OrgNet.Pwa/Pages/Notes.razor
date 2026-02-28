@@ -1,0 +1,66 @@
+@page "/notes"
+@attribute [Authorize]
+@inject ApiClient Api
+
+<div class="page-content">
+    <h2 class="page-title">Notes</h2>
+
+    @if (_notes?.Count > 0)
+    {
+        @foreach (var n in _notes)
+        {
+            <div class="card" @onclick="() => SelectNote(n)">
+                <div class="card-title">@n.Title</div>
+                <div class="card-sub">@n.Content.Truncate(100)</div>
+                <div class="card-meta">
+                    @(n.IsPinned ? "📌 " : "")@n.LastEditedBy · @(n.LastEditedAt?.ToString("MMM dd, HH:mm") ?? n.CreatedAt.ToString("MMM dd, HH:mm"))
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="empty">No notes yet</div>
+    }
+
+    @if (_selected != null)
+    {
+        <div class="note-overlay" @onclick="() => _selected = null">
+            <div class="note-detail" @onclick:stopPropagation="true">
+                <h3>@_selected.Title</h3>
+                <div class="note-body">@_selected.Content</div>
+                <div class="card-meta">Last edited by @_selected.LastEditedBy · @(_selected.LastEditedAt?.ToString("MMM dd, HH:mm") ?? _selected.CreatedAt.ToString("MMM dd, HH:mm"))</div>
+                <button class="btn-ghost" @onclick="() => _selected = null">Close</button>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .note-overlay {
+        position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: flex;
+        align-items: center; justify-content: center; z-index: 50; padding: 16px;
+    }
+    .note-detail {
+        background: #1a1a2e; border: 1px solid #1f2937; border-radius: 12px;
+        padding: 24px; max-width: 500px; width: 100%; max-height: 80dvh; overflow-y: auto;
+    }
+    .note-detail h3 { color: white; margin: 0 0 12px; font-size: 20px; }
+    .note-body { color: #d1d5db; font-size: 14px; line-height: 1.6; white-space: pre-wrap; margin-bottom: 16px; }
+    .btn-ghost {
+        background: none; border: 1px solid #374151; color: #9ca3af; padding: 8px 16px;
+        border-radius: 8px; font-size: 13px; cursor: pointer;
+    }
+</style>
+
+@code {
+    private List<CollabNoteDto>? _notes;
+    private CollabNoteDto? _selected;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _notes = await Api.GetAsync<List<CollabNoteDto>>("api/notes");
+    }
+
+    private void SelectNote(CollabNoteDto note) => _selected = note;
+}

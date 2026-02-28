@@ -137,7 +137,7 @@ try
         options.AddPolicy("OrgNetClients", policy =>
         {
             var origins = builder.Configuration.GetSection("Cors:Origins").Get<string[]>()
-                ?? ["http://localhost:5173", "http://localhost:5000"];
+                ?? ["http://localhost:5173", "http://localhost:5000", "http://localhost:5220"];
             policy.WithOrigins(origins)
                 .AllowAnyHeader()
                 .AllowAnyMethod()
