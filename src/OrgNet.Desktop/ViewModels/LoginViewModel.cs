@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+using System.Text;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using OrgNet.Desktop.Services;
@@ -55,6 +57,7 @@ public partial class LoginViewModel : ObservableObject
             if (result is { Success: true })
             {
                 _credentials.StoreTokens(result.AccessToken, result.RefreshToken, result.TenantId);
+                _ = RegisterDeviceInBackgroundAsync();
                 await _signalR.ConnectAsync();
                 _navigation.NavigateTo(typeof(Views.ShellPage));
             }
@@ -94,6 +97,7 @@ public partial class LoginViewModel : ObservableObject
             if (result is { Success: true })
             {
                 _credentials.StoreTokens(result.AccessToken, result.RefreshToken, result.TenantId);
+                _ = RegisterDeviceInBackgroundAsync();
                 await _signalR.ConnectAsync();
                 _navigation.NavigateTo(typeof(Views.OnboardingPage)); // #13 Onboarding after registration
             }
@@ -187,6 +191,7 @@ public partial class LoginViewModel : ObservableObject
             if (result is { Success: true })
             {
                 _credentials.StoreTokens(result.AccessToken, result.RefreshToken, result.TenantId);
+                _ = RegisterDeviceInBackgroundAsync();
                 await _signalR.ConnectAsync();
                 _navigation.NavigateTo(typeof(Views.ShellPage));
             }
@@ -202,6 +207,26 @@ public partial class LoginViewModel : ObservableObject
         finally
         {
             IsLoading = false;
+        }
+    }
+
+    private async Task RegisterDeviceInBackgroundAsync()
+    {
+        try
+        {
+            var machineName = Environment.MachineName;
+            var osVersion = Environment.OSVersion.ToString();
+            var rawFingerprint = $"{machineName}|{osVersion}|{Environment.UserName}";
+            var hash = SHA256.HashData(Encoding.UTF8.GetBytes(rawFingerprint));
+            var fingerprint = Convert.ToHexString(hash);
+
+            var platform = $"Windows {Environment.OSVersion.Version.Major}";
+
+            await _api.RegisterDeviceAsync(new RegisterDeviceRequest(machineName, fingerprint, platform));
+        }
+        catch
+        {
+            // Device registration is best-effort — don't block login if it fails
         }
     }
 
