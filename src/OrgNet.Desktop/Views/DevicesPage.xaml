@@ -30,18 +30,28 @@
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Grid.Column="0" Spacing="4">
                                     <TextBlock Text="{Binding DeviceName}" FontSize="16" FontWeight="SemiBold"/>
                                     <StackPanel Orientation="Horizontal" Spacing="12">
                                         <TextBlock Text="{Binding Platform}" Opacity="0.6" FontSize="13"/>
-                                        <TextBlock Text="{Binding RegisteredAt}" Opacity="0.4" FontSize="12"/>
+                                        <TextBlock Text="{Binding TrustLevel}" Opacity="0.5" FontSize="13" FontWeight="SemiBold"/>
+                                        <TextBlock Text="{Binding LastIpAddress}" Opacity="0.4" FontSize="12"/>
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal" Spacing="12">
+                                        <TextBlock Text="{Binding UserDisplayName}" Opacity="0.5" FontSize="12"/>
+                                        <TextBlock Text="{Binding UserEmail}" Opacity="0.4" FontSize="12"/>
+                                        <TextBlock Text="{Binding RegisteredAt}" Opacity="0.3" FontSize="11"/>
                                     </StackPanel>
                                 </StackPanel>
-                                <Border Grid.Column="1" CornerRadius="4" Padding="10,4" VerticalAlignment="Center">
-                                    <TextBlock Text="{Binding TrustLevel}" VerticalAlignment="Center"
-                                               FontWeight="SemiBold" FontSize="13"/>
-                                </Border>
+                                <StackPanel x:Name="ActionButtons" Grid.Column="1" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Margin="8,0">
+                                    <Button Content="Approve" Tag="{Binding Id}" Click="OnApproveClick"
+                                            Background="#22c55e" Foreground="White" CornerRadius="6" Padding="12,6" FontSize="12"/>
+                                    <Button Content="Decline" Tag="{Binding Id}" Click="OnDeclineClick"
+                                            Background="#ef4444" Foreground="White" CornerRadius="6" Padding="12,6" FontSize="12"/>
+                                </StackPanel>
+                                <TextBlock Grid.Column="2" Text="{Binding RiskScore}" Opacity="0.3" FontSize="11" VerticalAlignment="Center" Margin="8,0,0,0"/>
                             </Grid>
                         </Border>
                     </DataTemplate>

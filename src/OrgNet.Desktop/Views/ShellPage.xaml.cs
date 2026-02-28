@@ -19,6 +19,7 @@ public sealed partial class ShellPage : Page
         _signalR = App.GetService<SignalRService>();
 
         _signalR.OnConnectionChanged += OnConnectionChanged;
+        _signalR.OnDeviceRevoked += OnDeviceRevoked;
 
         // Navigate to Dashboard by default
         ContentFrame.Navigate(typeof(DashboardPage));
@@ -66,6 +67,29 @@ public sealed partial class ShellPage : Page
     private void OnConnectionChanged(bool connected)
     {
         DispatcherQueue.TryEnqueue(() => UpdateConnectionStatus(connected));
+    }
+
+    private void OnDeviceRevoked(Guid deviceId, string reason)
+    {
+        DispatcherQueue.TryEnqueue(async () =>
+        {
+            var dialog = new ContentDialog
+            {
+                Title = "Device Revoked",
+                Content = $"Your device has been revoked by an administrator.\n\nReason: {reason}\n\nYou will be logged out.",
+                CloseButtonText = "OK",
+                XamlRoot = this.XamlRoot
+            };
+            await dialog.ShowAsync();
+
+            // Force logout: clear credentials and navigate to login
+            var credentials = App.GetService<ICredentialStore>();
+            credentials.Clear();
+            var signalR = App.GetService<SignalRService>();
+            await signalR.DisconnectAsync();
+            var nav = App.GetService<INavigationService>();
+            nav.NavigateTo(typeof(LoginPage));
+        });
     }
 
     private void UpdateConnectionStatus(bool connected)

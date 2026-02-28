@@ -23,6 +23,7 @@ public class SignalRService : IAsyncDisposable
     public event Action<ChatMessageDto>? OnChatMessageEdited;
     public event Action<Guid>? OnChatMessageDeleted;
     public event Action<AnnouncementDto>? OnAnnouncement;
+    public event Action<Guid, string>? OnDeviceRevoked;
     public event Action<bool>? OnConnectionChanged;
 
     public SignalRService(ICredentialStore credentials, IConfiguration configuration)
@@ -75,6 +76,13 @@ public class SignalRService : IAsyncDisposable
         _hub.On<AnnouncementDto>("ReceiveAnnouncement", announcement =>
         {
             OnAnnouncement?.Invoke(announcement);
+        });
+
+        _hub.On("DeviceRevoked", (System.Text.Json.JsonElement payload) =>
+        {
+            var deviceId = payload.TryGetProperty("DeviceId", out var did) && Guid.TryParse(did.GetString(), out var id) ? id : Guid.Empty;
+            var reason = payload.TryGetProperty("Reason", out var r) ? r.GetString() ?? "Device revoked" : "Device revoked";
+            OnDeviceRevoked?.Invoke(deviceId, reason);
         });
 
         _hub.Reconnected += _ =>

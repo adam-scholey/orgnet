@@ -28,5 +28,29 @@ public sealed partial class DevicesPage : Page
     {
         await _vm.LoadCommand.ExecuteAsync(null);
     }
+
+    private async void OnApproveClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.Tag is Guid deviceId)
+            await _vm.TrustDeviceCommand.ExecuteAsync(deviceId);
+    }
+
+    private async void OnDeclineClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.Tag is Guid deviceId)
+        {
+            var dialog = new ContentDialog
+            {
+                Title = "Decline Device",
+                Content = "This will revoke the device and force the user to log out. Are you sure?",
+                PrimaryButtonText = "Decline",
+                CloseButtonText = "Cancel",
+                XamlRoot = this.XamlRoot
+            };
+            var result = await dialog.ShowAsync();
+            if (result == ContentDialogResult.Primary)
+                await _vm.RevokeDeviceCommand.ExecuteAsync(deviceId);
+        }
+    }
 }
 

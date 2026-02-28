@@ -114,15 +114,15 @@ public partial class DeviceService
         return true;
     }
 
-    public async Task<bool> RevokeDeviceAsync(Guid deviceId, string? reason = null)
+    public async Task<(bool Success, Guid? OwnerUserId)> RevokeDeviceAsync(Guid deviceId, string? reason = null)
     {
         var device = await _db.UserDevices.FindAsync(deviceId);
-        if (device == null) return false;
+        if (device == null) return (false, null);
 
         device.TrustLevel = DeviceTrustLevel.Revoked;
         device.RevokedReason = reason;
         await _db.SaveChangesAsync();
-        return true;
+        return (true, device.UserId);
     }
 
     public async Task<bool> IsDeviceTrustedAsync(Guid userId, string fingerprint)
@@ -137,6 +137,18 @@ public partial class DeviceService
             .Where(d => d.UserId == userId)
             .OrderByDescending(d => d.LastSeenAt)
             .Select(d => MapToDto(d))
+            .ToListAsync();
+    }
+
+    public async Task<List<DeviceDto>> GetAllTenantDevicesAsync()
+    {
+        return await _db.UserDevices
+            .Include(d => d.User)
+            .OrderByDescending(d => d.LastSeenAt)
+            .Select(d => new DeviceDto(
+                d.Id, d.DeviceName, d.Platform, d.TrustLevel.ToString(),
+                d.RegisteredAt, d.LastSeenAt, d.LastIpAddress, d.RiskScore,
+                d.UserId, d.User!.DisplayName, d.User.Email))
             .ToListAsync();
     }
 

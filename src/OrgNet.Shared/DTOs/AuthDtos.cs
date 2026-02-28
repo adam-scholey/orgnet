@@ -21,7 +21,7 @@ public record UpdateTenantRequest(string? Name, string? Plan, string? Sector);
 
 // Devices
 public record RegisterDeviceRequest(string DeviceName, string Fingerprint, string Platform);
-public record DeviceDto(Guid Id, string DeviceName, string Platform, string TrustLevel, DateTime RegisteredAt, DateTime? LastSeenAt, string? LastIpAddress = null, int RiskScore = 0);
+public record DeviceDto(Guid Id, string DeviceName, string Platform, string TrustLevel, DateTime RegisteredAt, DateTime? LastSeenAt, string? LastIpAddress = null, int RiskScore = 0, Guid? UserId = null, string? UserDisplayName = null, string? UserEmail = null);
 
 // Modules
 public record ModuleInfoDto(string ModuleId, string Name, string Description, string Version, string Status, string? IconUrl);

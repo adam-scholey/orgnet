@@ -146,7 +146,8 @@ public partial class App : Application
                     var raw = $"{machineName}|{osVersion}|{Environment.UserName}";
                     var hash = System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(raw));
                     var fingerprint = Convert.ToHexString(hash);
-                    var platform = $"Windows {Environment.OSVersion.Version.Major}";
+                    var winVer = Environment.OSVersion.Version;
+                    var platform = winVer.Major >= 10 && winVer.Build >= 22000 ? "Windows 11" : $"Windows {winVer.Major}";
                     var api = GetService<OrgNetApiClient>();
                     _ = api.RegisterDeviceAsync(new Shared.DTOs.RegisterDeviceRequest(machineName, fingerprint, platform));
                 }

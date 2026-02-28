@@ -129,8 +129,19 @@ public class OrgNetApiClient
 
     // ── Devices ──
     public async Task<List<DeviceDto>?> GetDevicesAsync() => await GetJson<List<DeviceDto>>("api/devices");
+    public async Task<List<DeviceDto>?> GetAllDevicesAsync() => await GetJson<List<DeviceDto>>("api/devices/all");
     public async Task<DeviceDto?> RegisterDeviceAsync(RegisterDeviceRequest request)
         => await PostJson<DeviceDto>("api/devices/register", request);
+    public async Task<bool> TrustDeviceAsync(Guid deviceId)
+    {
+        var result = await PutJson<object>($"api/devices/{deviceId}/trust", new { });
+        return result != null;
+    }
+    public async Task<bool> RevokeDeviceAsync(Guid deviceId)
+    {
+        var result = await PutJson<object>($"api/devices/{deviceId}/revoke", new { });
+        return result != null;
+    }
 
     // ── Audit ──
     public async Task<AuditPageResult?> GetAuditLogsAsync(int page = 1) => await GetJson<AuditPageResult>($"api/audit?page={page}");

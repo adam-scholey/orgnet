@@ -220,7 +220,8 @@ public partial class LoginViewModel : ObservableObject
             var hash = SHA256.HashData(Encoding.UTF8.GetBytes(rawFingerprint));
             var fingerprint = Convert.ToHexString(hash);
 
-            var platform = $"Windows {Environment.OSVersion.Version.Major}";
+            var winVer = Environment.OSVersion.Version;
+            var platform = winVer.Major >= 10 && winVer.Build >= 22000 ? "Windows 11" : $"Windows {winVer.Major}";
 
             System.Diagnostics.Debug.WriteLine($"[DEVICE-REG] Registering: name={machineName}, fp={fingerprint[..16]}..., platform={platform}");
 
