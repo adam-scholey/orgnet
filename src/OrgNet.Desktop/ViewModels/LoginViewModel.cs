@@ -222,11 +222,17 @@ public partial class LoginViewModel : ObservableObject
 
             var platform = $"Windows {Environment.OSVersion.Version.Major}";
 
-            await _api.RegisterDeviceAsync(new RegisterDeviceRequest(machineName, fingerprint, platform));
+            System.Diagnostics.Debug.WriteLine($"[DEVICE-REG] Registering: name={machineName}, fp={fingerprint[..16]}..., platform={platform}");
+
+            var result = await _api.RegisterDeviceAsync(new RegisterDeviceRequest(machineName, fingerprint, platform));
+
+            System.Diagnostics.Debug.WriteLine(result != null
+                ? $"[DEVICE-REG] Success: {result.DeviceName} (id={result.Id})"
+                : $"[DEVICE-REG] Failed: {_api.LastError}");
         }
-        catch
+        catch (Exception ex)
         {
-            // Device registration is best-effort — don't block login if it fails
+            System.Diagnostics.Debug.WriteLine($"[DEVICE-REG] Exception: {ex.Message}");
         }
     }
 

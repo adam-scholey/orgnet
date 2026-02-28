@@ -129,6 +129,29 @@ public partial class App : Application
                 var api2 = GetService<OrgNetApiClient>();
                 api2.LastError = null;
             }
+            else
+            {
+                // Auto-login succeeded — connect SignalR and register device
+                try
+                {
+                    var signalR = GetService<SignalRService>();
+                    _ = signalR.ConnectAsync();
+                }
+                catch { /* best-effort */ }
+
+                try
+                {
+                    var machineName = Environment.MachineName;
+                    var osVersion = Environment.OSVersion.ToString();
+                    var raw = $"{machineName}|{osVersion}|{Environment.UserName}";
+                    var hash = System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(raw));
+                    var fingerprint = Convert.ToHexString(hash);
+                    var platform = $"Windows {Environment.OSVersion.Version.Major}";
+                    var api = GetService<OrgNetApiClient>();
+                    _ = api.RegisterDeviceAsync(new Shared.DTOs.RegisterDeviceRequest(machineName, fingerprint, platform));
+                }
+                catch { /* best-effort */ }
+            }
         }
 
         rootFrame.Navigate(goToShell ? typeof(Views.ShellPage) : typeof(Views.LoginPage));
