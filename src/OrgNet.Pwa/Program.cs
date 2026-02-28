@@ -16,7 +16,9 @@ builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<ApiClient>();
 builder.Services.AddScoped(sp =>
 {
-    var client = new HttpClient { BaseAddress = new Uri("http://192.168.1.179:5100") };
+    var config = sp.GetRequiredService<IConfiguration>();
+    var apiUrl = config["ApiBaseUrl"] ?? "http://192.168.1.179:5100";
+    var client = new HttpClient { BaseAddress = new Uri(apiUrl) };
     return client;
 });
 
