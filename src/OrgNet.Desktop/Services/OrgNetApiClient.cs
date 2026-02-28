@@ -244,7 +244,16 @@ public class OrgNetApiClient
 
             if (!response.IsSuccessStatusCode)
             {
-                LastError = $"Server returned {(int)response.StatusCode}";
+                // Try to deserialize as T so callers get structured error (e.g. AuthResponse.Error)
+                try
+                {
+                    var errorResult = await response.Content.ReadFromJsonAsync<T>();
+                    if (errorResult != null) return errorResult;
+                }
+                catch { /* fallback to raw body */ }
+
+                var body = await response.Content.ReadAsStringAsync();
+                LastError = ExtractErrorMessage(body, (int)response.StatusCode);
                 return default;
             }
             return await response.Content.ReadFromJsonAsync<T>();
@@ -264,6 +273,19 @@ public class OrgNetApiClient
             LastError = ex.Message;
             return default;
         }
+    }
+
+    /// <summary>Extract a human-readable error from a JSON response body.</summary>
+    private static string ExtractErrorMessage(string body, int statusCode)
+    {
+        try
+        {
+            var doc = System.Text.Json.JsonDocument.Parse(body);
+            if (doc.RootElement.TryGetProperty("error", out var err) && err.GetString() is string msg)
+                return msg;
+        }
+        catch { /* not JSON or no error field */ }
+        return $"Server returned {statusCode}";
     }
 
     private static bool IsAuthEndpoint(string url) =>
@@ -290,8 +312,15 @@ public class OrgNetApiClient
 
             if (!response.IsSuccessStatusCode)
             {
+                try
+                {
+                    var errorResult = await response.Content.ReadFromJsonAsync<T>();
+                    if (errorResult != null) return errorResult;
+                }
+                catch { /* fallback to raw body */ }
+
                 var body = await response.Content.ReadAsStringAsync();
-                LastError = $"Server returned {(int)response.StatusCode}: {body}";
+                LastError = ExtractErrorMessage(body, (int)response.StatusCode);
                 return default;
             }
             return await response.Content.ReadFromJsonAsync<T>();
@@ -331,8 +360,15 @@ public class OrgNetApiClient
 
             if (!response.IsSuccessStatusCode)
             {
+                try
+                {
+                    var errorResult = await response.Content.ReadFromJsonAsync<T>();
+                    if (errorResult != null) return errorResult;
+                }
+                catch { /* fallback to raw body */ }
+
                 var body = await response.Content.ReadAsStringAsync();
-                LastError = $"Server returned {(int)response.StatusCode}: {body}";
+                LastError = ExtractErrorMessage(body, (int)response.StatusCode);
                 return default;
             }
             return await response.Content.ReadFromJsonAsync<T>();
