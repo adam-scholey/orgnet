@@ -189,9 +189,6 @@ public class AuthController : ControllerBase
             input:focus{border-color:#3b82f6}
             button{width:100%;padding:.75rem;border:none;border-radius:8px;background:#3b82f6;color:#fff;font-size:1rem;font-weight:600;cursor:pointer;margin-top:1.5rem;transition:background .2s}
             button:hover{background:#2563eb}
-            button:disabled{background:#475569;cursor:not-allowed}
-            .msg{text-align:center;margin-top:1rem;font-size:.9rem;min-height:1.3rem}
-            .msg.ok{color:#34d399}.msg.err{color:#f87171}
             </style>
             </head><body><div class="card">
             <h1>OrgNet</h1>
@@ -202,46 +199,15 @@ public class AuthController : ControllerBase
                 <strong>Role:</strong> {{invite.Role}}<br>
                 <strong>Email:</strong> {{invite.Email}}
             </div>
-            <div id="formArea">
-                <input id="tk" type="hidden" value="{{safeToken}}">
-                <label for="name">Display Name</label>
-                <input id="name" type="text" maxlength="150" placeholder="Your name">
-                <label for="pw">Password</label>
-                <input id="pw" type="password" maxlength="128" placeholder="Choose a password (min 8 chars)">
-                <button id="btn" type="button">Join Organisation</button>
+            <form method="POST" action="/api/auth/accept-invite-form">
+                <input type="hidden" name="token" value="{{safeToken}}">
+                <label for="displayName">Display Name</label>
+                <input id="displayName" name="displayName" type="text" maxlength="150" placeholder="Your name" required>
+                <label for="password">Password</label>
+                <input id="password" name="password" type="password" minlength="8" maxlength="128" placeholder="Choose a password (min 8 chars)" required>
+                <button type="submit">Join Organisation</button>
+            </form>
             </div>
-            <p id="msg" class="msg"></p>
-            </div>
-            <script>
-            document.getElementById('btn').addEventListener('click', function(){
-                var btn=this,msg=document.getElementById('msg');
-                var tk=document.getElementById('tk').value;
-                var nm=document.getElementById('name').value;
-                var pw=document.getElementById('pw').value;
-                if(!nm){msg.className='msg err';msg.textContent='Please enter your name.';return;}
-                if(!pw||pw.length<8){msg.className='msg err';msg.textContent='Password must be at least 8 characters.';return;}
-                btn.disabled=true; msg.className='msg'; msg.textContent='Joining...';
-                var payload=JSON.stringify({token:tk,displayName:nm,password:pw});
-                var url=window.location.origin+'/api/auth/accept-invite?t='+encodeURIComponent(tk);
-                fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:payload})
-                .then(function(resp){return resp.json().then(function(data){return {status:resp.status,data:data};});})
-                .then(function(result){
-                    var data=result.data;
-                    if(data.success){
-                        msg.className='msg ok';
-                        msg.textContent='Welcome, '+data.displayName+'! You have joined successfully. You can now log in from the OrgNet desktop app using: '+document.querySelector('.info').textContent.split('Email:')[1].trim();
-                        document.getElementById('formArea').style.display='none';
-                    }else{
-                        msg.className='msg err';msg.textContent=data.error||('Server returned '+result.status);
-                        btn.disabled=false;
-                    }
-                })
-                .catch(function(err){
-                    msg.className='msg err';msg.textContent='Network error: '+err.message+' — URL: '+url;
-                    btn.disabled=false;
-                });
-            });
-            </script>
             </body></html>
             """;
         }
@@ -268,18 +234,40 @@ public class AuthController : ControllerBase
     [HttpPost("accept-invite")]
     public async Task<ActionResult<AuthResponse>> AcceptInvite([FromQuery] string? t = null)
     {
-        // Manually read JSON body to avoid model validation blocking on Token
-        string body;
-        using (var reader = new System.IO.StreamReader(Request.Body))
-            body = await reader.ReadToEndAsync();
+        Console.WriteLine($"[ACCEPT-INVITE] POST received from {HttpContext.Connection.RemoteIpAddress}");
 
-        var json = System.Text.Json.JsonDocument.Parse(body).RootElement;
+        string body;
+        try
+        {
+            using var reader = new System.IO.StreamReader(Request.Body);
+            body = await reader.ReadToEndAsync();
+            Console.WriteLine($"[ACCEPT-INVITE] Body length={body.Length}, body={body[..Math.Min(200, body.Length)]}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ACCEPT-INVITE] Failed to read body: {ex.Message}");
+            return BadRequest(new AuthResponse(false, "", "", "", "", Guid.Empty, $"Failed to read request body: {ex.Message}"));
+        }
+
+        System.Text.Json.JsonElement json;
+        try
+        {
+            json = System.Text.Json.JsonDocument.Parse(body).RootElement;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ACCEPT-INVITE] JSON parse failed: {ex.Message}");
+            return BadRequest(new AuthResponse(false, "", "", "", "", Guid.Empty, $"Invalid JSON: {ex.Message}"));
+        }
+
         var token = json.TryGetProperty("token", out var tokEl) ? tokEl.GetString() : null;
         var displayName = json.TryGetProperty("displayName", out var dnEl) ? dnEl.GetString() : null;
         var password = json.TryGetProperty("password", out var pwEl) ? pwEl.GetString() : null;
 
         // Fallback: query string
         if (string.IsNullOrWhiteSpace(token)) token = t;
+
+        Console.WriteLine($"[ACCEPT-INVITE] token={token?[..Math.Min(20, token?.Length ?? 0)]}..., name={displayName}, pwLen={password?.Length}");
 
         if (string.IsNullOrWhiteSpace(token))
             return BadRequest(new AuthResponse(false, "", "", "", "", Guid.Empty, "Invite token required"));
@@ -293,6 +281,8 @@ public class AuthController : ControllerBase
         var request = new AcceptInviteRequest(token, displayName, password);
         var result = await _authService.AcceptInvitationAsync(request);
 
+        Console.WriteLine($"[ACCEPT-INVITE] Result: success={result.Success}, error={result.Error}");
+
         if (result.Success)
         {
             await _auditService.LogAsync(null, displayName, AuditAction.Login, "User",
@@ -302,5 +292,71 @@ public class AuthController : ControllerBase
 
         if (!result.Success) return BadRequest(result);
         return Ok(result);
+    }
+
+    /// <summary>
+    /// Accept an invitation via a plain HTML form POST (no JavaScript required).
+    /// The browser submits form fields directly; this endpoint returns an HTML result page.
+    /// </summary>
+    [HttpPost("accept-invite-form")]
+    [Consumes("application/x-www-form-urlencoded")]
+    public async Task<ContentResult> AcceptInviteForm([FromForm] string token, [FromForm] string displayName, [FromForm] string password)
+    {
+        Console.WriteLine($"[ACCEPT-FORM] POST from {HttpContext.Connection.RemoteIpAddress}, token={token?[..Math.Min(20, token?.Length ?? 0)]}..., name={displayName}");
+
+        string resultHtml;
+        string css = """
+            *{margin:0;padding:0;box-sizing:border-box}
+            body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0f172a;color:#e2e8f0;display:flex;align-items:center;justify-content:center;min-height:100vh}
+            .card{background:#1e293b;border-radius:12px;padding:2.5rem;max-width:440px;width:90%;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.3)}
+            h1{font-size:1.5rem;margin-bottom:1rem;color:#f8fafc}
+            .ok{color:#34d399;font-size:1.1rem;margin-bottom:1rem}
+            .err{color:#f87171;font-size:1.1rem;margin-bottom:1rem}
+            .detail{color:#94a3b8;font-size:.95rem;margin-top:.5rem;line-height:1.6}
+            .email{color:#60a5fa;font-weight:600}
+            """;
+
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            resultHtml = $"<!DOCTYPE html><html><head><meta charset=\"utf-8\"><title>OrgNet</title><style>{css}</style></head><body><div class=\"card\"><h1>OrgNet</h1><p class=\"err\">Invite token is missing.</p></div></body></html>";
+            return new ContentResult { Content = resultHtml, ContentType = "text/html", StatusCode = 400 };
+        }
+
+        if (string.IsNullOrWhiteSpace(displayName) || displayName.Length > 150)
+        {
+            resultHtml = $"<!DOCTYPE html><html><head><meta charset=\"utf-8\"><title>OrgNet</title><style>{css}</style></head><body><div class=\"card\"><h1>OrgNet</h1><p class=\"err\">Display name is required (max 150 characters).</p><p class=\"detail\">Press back and try again.</p></div></body></html>";
+            return new ContentResult { Content = resultHtml, ContentType = "text/html", StatusCode = 400 };
+        }
+
+        if (string.IsNullOrWhiteSpace(password) || password.Length < 8 || password.Length > 128)
+        {
+            resultHtml = $"<!DOCTYPE html><html><head><meta charset=\"utf-8\"><title>OrgNet</title><style>{css}</style></head><body><div class=\"card\"><h1>OrgNet</h1><p class=\"err\">Password must be 8–128 characters.</p><p class=\"detail\">Press back and try again.</p></div></body></html>";
+            return new ContentResult { Content = resultHtml, ContentType = "text/html", StatusCode = 400 };
+        }
+
+        var request = new AcceptInviteRequest(token, displayName, password);
+        var result = await _authService.AcceptInvitationAsync(request);
+
+        Console.WriteLine($"[ACCEPT-FORM] Result: success={result.Success}, error={result.Error}");
+
+        if (result.Success)
+        {
+            await _auditService.LogAsync(null, displayName, AuditAction.Login, "User",
+                details: "Accepted invitation and joined organisation (form)",
+                ipAddress: HttpContext.Connection.RemoteIpAddress?.ToString());
+
+            // Look up invite email so we can show it on the success page
+            var invite = await _authService.GetInvitationByTokenAsync(token);
+            var email = System.Net.WebUtility.HtmlEncode(invite?.Email ?? "your invite email");
+
+            resultHtml = $"<!DOCTYPE html><html><head><meta charset=\"utf-8\"><title>OrgNet — Welcome!</title><style>{css}</style></head><body><div class=\"card\"><h1>OrgNet</h1><p class=\"ok\">✓ Welcome, {System.Net.WebUtility.HtmlEncode(displayName)}!</p><p class=\"detail\">You have successfully joined the organisation.<br><br>You can now log in from the <strong>OrgNet desktop app</strong> using:<br><span class=\"email\">{email}</span><br>and the password you just created.</p></div></body></html>";
+            return new ContentResult { Content = resultHtml, ContentType = "text/html", StatusCode = 200 };
+        }
+        else
+        {
+            var safeError = System.Net.WebUtility.HtmlEncode(result.Error ?? "Unknown error");
+            resultHtml = $"<!DOCTYPE html><html><head><meta charset=\"utf-8\"><title>OrgNet — Error</title><style>{css}</style></head><body><div class=\"card\"><h1>OrgNet</h1><p class=\"err\">{safeError}</p><p class=\"detail\">Press back and try again, or contact your administrator.</p></div></body></html>";
+            return new ContentResult { Content = resultHtml, ContentType = "text/html", StatusCode = 400 };
+        }
     }
 }
