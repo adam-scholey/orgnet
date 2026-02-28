@@ -57,7 +57,7 @@ try
                 RoleClaimType = "role"
             };
 
-            // Allow SignalR to receive the JWT via query string
+            // Allow SignalR to receive the JWT via query string + log validation failures
             options.Events = new JwtBearerEvents
             {
                 OnMessageReceived = context =>
@@ -68,6 +68,12 @@ try
                     {
                         context.Token = accessToken;
                     }
+                    return Task.CompletedTask;
+                },
+                OnAuthenticationFailed = context =>
+                {
+                    Log.Warning("JWT validation failed for {Path}: {Error}",
+                        context.Request.Path, context.Exception.Message);
                     return Task.CompletedTask;
                 }
             };

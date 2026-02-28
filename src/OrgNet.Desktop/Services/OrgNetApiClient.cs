@@ -266,6 +266,10 @@ public class OrgNetApiClient
         }
     }
 
+    private static bool IsAuthEndpoint(string url) =>
+        url.Contains("auth/login") || url.Contains("auth/register") ||
+        url.Contains("auth/accept-invite") || url.Contains("auth/refresh");
+
     private async Task<T?> PostJson<T>(string url, object data)
     {
         LastError = null;
@@ -274,7 +278,9 @@ public class OrgNetApiClient
             AttachHeaders();
             var response = await _http.PostAsJsonAsync(url, data);
 
-            if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            // Only attempt token refresh for non-auth endpoints.
+            // Auth endpoints return 401 to mean "bad credentials", not "expired session".
+            if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized && !IsAuthEndpoint(url))
             {
                 var refreshed = await RefreshTokenAsync();
                 if (refreshed == null) { LastError = "Session expired — please log in again"; return default; }

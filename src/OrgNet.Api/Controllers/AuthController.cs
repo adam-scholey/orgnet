@@ -67,7 +67,7 @@ public class AuthController : ControllerBase
                 details: "Login successful", ipAddress: HttpContext.Connection.RemoteIpAddress?.ToString());
         }
 
-        if (!result.Success) return Unauthorized(result);
+        if (!result.Success) return BadRequest(result);
         return Ok(result);
     }
 
@@ -86,7 +86,7 @@ public class AuthController : ControllerBase
                 details: "Login successful (by email)", ipAddress: HttpContext.Connection.RemoteIpAddress?.ToString());
         }
 
-        if (!result.Success) return Unauthorized(result);
+        if (!result.Success) return BadRequest(result);
         return Ok(result);
     }
 

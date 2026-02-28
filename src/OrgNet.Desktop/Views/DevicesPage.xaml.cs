@@ -29,3 +29,4 @@ public sealed partial class DevicesPage : Page
         await _vm.LoadCommand.ExecuteAsync(null);
     }
 }
+
