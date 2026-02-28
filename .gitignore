@@ -28,6 +28,10 @@ bld/
 .idea/
 *.swp
 *~
+
+## Environment
+.env
+.env.*
 .vscode/
 
 ## OS

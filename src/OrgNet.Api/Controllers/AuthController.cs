@@ -221,30 +221,25 @@ public class AuthController : ControllerBase
                 if(!nm){msg.className='msg err';msg.textContent='Please enter your name.';return;}
                 if(!pw||pw.length<8){msg.className='msg err';msg.textContent='Password must be at least 8 characters.';return;}
                 btn.disabled=true; msg.className='msg'; msg.textContent='Joining...';
-                var xhr=new XMLHttpRequest();
-                xhr.open('POST','/api/auth/accept-invite?t='+encodeURIComponent(tk),true);
-                xhr.setRequestHeader('Content-Type','application/json');
-                xhr.onload=function(){
-                    try{
-                        var data=JSON.parse(xhr.responseText);
-                        if(data.success){
-                            msg.className='msg ok';
-                            msg.textContent='Welcome! You have joined successfully. You can now log in from the OrgNet desktop app.';
-                            document.getElementById('formArea').style.display='none';
-                        }else{
-                            msg.className='msg err';msg.textContent=data.error||'Failed to accept invite.';
-                            btn.disabled=false;
-                        }
-                    }catch(ex){
-                        msg.className='msg err';msg.textContent='Error: '+xhr.responseText;
+                var payload=JSON.stringify({token:tk,displayName:nm,password:pw});
+                var url=window.location.origin+'/api/auth/accept-invite?t='+encodeURIComponent(tk);
+                fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:payload})
+                .then(function(resp){return resp.json().then(function(data){return {status:resp.status,data:data};});})
+                .then(function(result){
+                    var data=result.data;
+                    if(data.success){
+                        msg.className='msg ok';
+                        msg.textContent='Welcome, '+data.displayName+'! You have joined successfully. You can now log in from the OrgNet desktop app using: '+document.querySelector('.info').textContent.split('Email:')[1].trim();
+                        document.getElementById('formArea').style.display='none';
+                    }else{
+                        msg.className='msg err';msg.textContent=data.error||('Server returned '+result.status);
                         btn.disabled=false;
                     }
-                };
-                xhr.onerror=function(){
-                    msg.className='msg err';msg.textContent='Network error — is the API running?';
+                })
+                .catch(function(err){
+                    msg.className='msg err';msg.textContent='Network error: '+err.message+' — URL: '+url;
                     btn.disabled=false;
-                };
-                xhr.send(JSON.stringify({token:tk,displayName:nm,password:pw}));
+                });
             });
             </script>
             </body></html>
