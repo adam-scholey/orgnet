@@ -44,17 +44,24 @@ public class ApiClient
     public async Task<T?> PostAsync<T>(string url, object data)
     {
         await AttachHeadersAsync();
+        var response = await _http.PostAsJsonAsync(url, data);
+        try { return await response.Content.ReadFromJsonAsync<T>(); }
+        catch { return default; }
+    }
+
+    public async Task<(int Status, string Body)> PostRawAsync(string url, object data)
+    {
+        await AttachHeadersAsync();
         try
         {
             var response = await _http.PostAsJsonAsync(url, data);
-            if (!response.IsSuccessStatusCode)
-            {
-                try { return await response.Content.ReadFromJsonAsync<T>(); }
-                catch { return default; }
-            }
-            return await response.Content.ReadFromJsonAsync<T>();
+            var body = await response.Content.ReadAsStringAsync();
+            return ((int)response.StatusCode, body);
         }
-        catch { return default; }
+        catch (Exception ex)
+        {
+            return (0, ex.Message);
+        }
     }
 
     public async Task<T?> PutAsync<T>(string url, object data)

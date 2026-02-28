@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Blazored.LocalStorage;
 using OrgNet.Shared.DTOs;
 
@@ -18,8 +19,16 @@ public class AuthService
 
     public async Task<(bool Success, string? Error)> LoginAsync(string email, string password)
     {
-        var result = await _api.PostAsync<AuthResponse>("api/auth/login-by-email", new LoginRequest(email, password));
-        if (result is { Success: true })
+        var (status, body) = await _api.PostRawAsync("api/auth/login-by-email", new LoginRequest(email, password));
+
+        if (status == 0)
+            return (false, $"Cannot reach server. Check your network connection. ({body})");
+
+        AuthResponse? result = null;
+        try { result = JsonSerializer.Deserialize<AuthResponse>(body, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }); }
+        catch { }
+
+        if (status == 200 && result is { Success: true })
         {
             await _storage.SetItemAsStringAsync("access_token", result.AccessToken);
             await _storage.SetItemAsStringAsync("refresh_token", result.RefreshToken);
@@ -27,7 +36,9 @@ public class AuthService
             _authState.NotifyAuthChanged();
             return (true, null);
         }
-        return (false, result?.Error ?? "Login failed");
+
+        var error = result?.Error ?? (status == 0 ? "Cannot connect to server" : $"HTTP {status}: {body}");
+        return (false, error);
     }
 
     public async Task LogoutAsync()
