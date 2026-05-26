@@ -123,7 +123,6 @@ OrgNet/
 │   └── k6/                         # Performance & load tests
 ├── docker-compose.yml              # PostgreSQL + Redis + API containers
 ├── requirements.txt                # Full dependency listing
-├── TECHNICAL_PLAN.md               # Detailed technical design document
 └── OrgNet.slnx                     # Solution file
 ```
 
